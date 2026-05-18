@@ -159,26 +159,36 @@ const MARQUEE_PROVIDERS: { slug: ProviderSlug; status: ProviderStatus }[] = [
 
 function PlatformsMarquee() {
   const doubled = [...MARQUEE_PROVIDERS, ...MARQUEE_PROVIDERS];
+  const [paused, setPaused] = useState(false);
   return (
-    <div className="relative overflow-hidden">
-      {/* Fade edges */}
+    <div
+      className="relative overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
       <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
       <motion.div
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-        className="flex items-end gap-4 py-2"
-        style={{ width: "max-content" }}
+        transition={{ duration: 45, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+        style={{ width: "max-content", animationPlayState: paused ? "paused" : "running" }}
+        className="flex items-end gap-5 py-3"
       >
         {doubled.map(({ slug, status }, i) => (
-          <ProviderIcon
+          <motion.div
             key={`${slug}-${i}`}
-            provider={slug}
-            size="md"
-            status={status}
-            showLabel
-          />
+            whileHover={{ y: -4, scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 420, damping: 16 }}
+            className="flex-shrink-0"
+          >
+            <ProviderIcon
+              provider={slug}
+              size="md"
+              status={status}
+              showLabel
+            />
+          </motion.div>
         ))}
       </motion.div>
     </div>
@@ -204,28 +214,33 @@ const CAPABILITIES = [
 ];
 
 function CapabilitiesRow() {
+  const [paused, setPaused] = useState(false);
   return (
-    <div className="relative overflow-hidden">
+    <div
+      className="relative overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
       <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
       <motion.div
         animate={{ x: ["-50%", "0%"] }}
-        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-        className="flex items-center gap-4 py-3"
-        style={{ width: "max-content" }}
+        transition={{ duration: 40, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+        style={{ width: "max-content", animationPlayState: paused ? "paused" : "running" }}
+        className="flex items-center gap-5 py-4"
       >
         {[...CAPABILITIES, ...CAPABILITIES].map(({ icon: Icon, label }, i) => (
           <motion.div
             key={`${label}-${i}`}
-            whileHover={{ y: -2, scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="flex flex-col items-center gap-2 cursor-default group"
+            whileHover={{ y: -4, scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 420, damping: 16 }}
+            className="flex flex-col items-center gap-2 cursor-default group flex-shrink-0"
           >
-            <div className="w-14 h-14 rounded-full bg-secondary border border-border flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:border-foreground/20 transition-all duration-200">
-              <Icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
+            <div className="w-14 h-14 rounded-full bg-secondary border border-border flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:border-foreground/30 transition-all duration-200">
+              <Icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-150" strokeWidth={1.5} />
             </div>
-            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{label}</span>
+            <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors whitespace-nowrap">{label}</span>
           </motion.div>
         ))}
       </motion.div>
