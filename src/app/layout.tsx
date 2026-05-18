@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: { default: "NexusForge", template: "%s | NexusForge" },
@@ -27,20 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.variable}>
-        {children}
-        <Toaster
-          theme="dark"
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: "#0d1117",
-              border: "1px solid #1e2d40",
-              color: "#f0f4ff",
-            },
-          }}
-        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              className: "bg-background text-foreground border-border",
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
