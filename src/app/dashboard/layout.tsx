@@ -19,7 +19,7 @@ export default async function DashboardLayout({
     .single();
 
   return (
-    <div className="flex h-screen bg-[#080a0f] overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       <DashboardSidebar user={profile} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <DashboardHeader user={profile} />
