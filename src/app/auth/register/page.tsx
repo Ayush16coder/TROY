@@ -1,27 +1,36 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, GitBranch, Mail, Lock, ArrowRight, Eye, EyeOff, User } from "lucide-react";
+import { GitBranch, Mail, Lock, ArrowRight, Eye, EyeOff, User, Loader2, Building, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [workspace, setWorkspace] = useState("");
   const [loading, setLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  const passwordStrength = useMemo(() => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    return score;
+  }, [password]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -30,6 +39,7 @@ export default function RegisterPage() {
         options: {
           data: {
             full_name: fullName,
+            workspace_name: workspace
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
@@ -37,11 +47,10 @@ export default function RegisterPage() {
 
       if (error) throw error;
       
-      // Usually Supabase requires email verification. Let's just push to login with a message.
+      toast.success("Account created successfully!");
       router.push("/auth/login?message=Check your email to verify your account.");
     } catch (error: any) {
-      setError(error.message);
-    } finally {
+      toast.error(error.message);
       setLoading(false);
     }
   };
@@ -57,135 +66,158 @@ export default function RegisterPage() {
       });
       if (error) throw error;
     } catch (error: any) {
-      setError(error.message);
+      toast.error(error.message);
       setGithubLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f18] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] mix-blend-screen" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[150px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
+    >
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold text-white tracking-tight mb-2">Create account</h1>
+        <p className="text-zinc-400 text-sm">Join the next-generation deployment orchestrator.</p>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md z-10"
-      >
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-b from-blue-500 to-indigo-600 mb-6 shadow-lg shadow-blue-500/20 ring-1 ring-white/10">
-            <Zap className="w-6 h-6 text-white fill-white/20" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Join NexusForge</h1>
-          <p className="text-zinc-400 text-sm">Create an account to deploy and orchestrate.</p>
+      <div className="space-y-6">
+        <button 
+          onClick={handleGithubSignup}
+          disabled={githubLoading}
+          className="w-full group flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white text-black hover:bg-zinc-100 font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {githubLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+          ) : (
+            <GitBranch className="w-5 h-5" />
+          )}
+          {githubLoading ? "Connecting..." : "Sign up with GitHub"}
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-zinc-600 font-medium">
+          <div className="flex-1 h-px bg-[#1e2d40]" />
+          <span className="uppercase tracking-wider">or sign up with email</span>
+          <div className="flex-1 h-px bg-[#1e2d40]" />
         </div>
 
-        <div className="glass-panel p-8 rounded-2xl border border-[#1e2d40] shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-          
-          <button 
-            onClick={handleGithubSignup}
-            disabled={githubLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[#1a2236] hover:bg-[#1e2a42] border border-[#1e2d40] text-white font-medium text-sm transition-all duration-200 disabled:opacity-50"
-          >
-            <GitBranch className="w-4.5 h-4.5" />
-            {githubLoading ? "Connecting..." : "Sign up with GitHub"}
-          </button>
-
-          <div className="flex items-center gap-4 my-6">
-            <div className="h-px bg-[#1e2d40] flex-1" />
-            <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Or continue with email</span>
-            <div className="h-px bg-[#1e2d40] flex-1" />
-          </div>
-
-          <form onSubmit={handleRegister} className="space-y-4">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-            
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300 ml-1">Full Name</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-4.5 w-4.5 text-zinc-500" />
-                </div>
+              <label className="text-sm font-medium text-zinc-300">Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 rounded-xl text-white text-sm transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
                   placeholder="John Doe"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300 ml-1">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-4.5 w-4.5 text-zinc-500" />
-                </div>
+              <label className="text-sm font-medium text-zinc-300">Workspace</label>
+              <div className="relative group">
+                <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 rounded-xl text-white text-sm transition-all outline-none"
-                  placeholder="you@company.com"
+                  value={workspace}
+                  onChange={(e) => setWorkspace(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
+                  placeholder="Acme Inc"
                 />
               </div>
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300 ml-1">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-4.5 w-4.5 text-zinc-500" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 rounded-xl text-white text-sm transition-all outline-none"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-300">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
+                placeholder="you@company.com"
+              />
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium px-4 py-3 rounded-xl transition-all shadow-lg shadow-blue-500/25 mt-2 disabled:opacity-50"
-            >
-              {loading ? "Creating account..." : "Create Account"}
-              {!loading && <ArrowRight className="w-4 h-4" />}
-            </button>
-          </form>
-        </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-zinc-300">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-11 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors rounded-md hover:bg-[#1e2d40]"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            
+            {/* Password Strength */}
+            {password.length > 0 && (
+              <div className="pt-2 flex items-center gap-2">
+                <div className="flex-1 flex gap-1 h-1">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div 
+                      key={i} 
+                      className={`flex-1 rounded-full transition-colors duration-300 ${
+                        i <= passwordStrength 
+                          ? (passwordStrength < 2 ? 'bg-red-500' : passwordStrength < 4 ? 'bg-amber-400' : 'bg-emerald-500')
+                          : 'bg-[#1e2d40]'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 w-12 text-right">
+                  {passwordStrength < 2 ? 'Weak' : passwordStrength < 4 ? 'Good' : 'Strong'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || (password.length > 0 && passwordStrength < 2)}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium px-4 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] mt-4 disabled:opacity-50 disabled:shadow-none"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
+            {!loading && <ArrowRight className="w-4 h-4" />}
+          </button>
+        </form>
 
         <p className="text-center text-zinc-500 text-sm mt-6">
-          Already have an account?{" "}
-          <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-            Sign in
-          </Link>
+          By signing up, you agree to our{" "}
+          <Link href="#" className="text-white hover:text-blue-400 transition-colors">Terms</Link> and{" "}
+          <Link href="#" className="text-white hover:text-blue-400 transition-colors">Privacy Policy</Link>.
         </p>
-      </motion.div>
-    </div>
+
+      </div>
+      
+      <p className="text-center text-sm text-zinc-500 mt-8">
+        Already have an account?{" "}
+        <Link href="/auth/login" className="text-white font-medium hover:text-blue-400 transition-colors">
+          Sign in
+        </Link>
+      </p>
+    </motion.div>
   );
 }
