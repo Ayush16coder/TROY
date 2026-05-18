@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import {
   GitBranch,
@@ -12,267 +12,396 @@ import {
   Globe,
   Cpu,
   ChevronRight,
+  Command,
+  Database,
+  Cloud,
+  Layers,
+  Code2
 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 
-const FEATURES = [
-  {
-    icon: GitBranch,
-    title: "Git-Native Orchestration",
-    description: "Every push triggers a synchronized cascade across GitHub, Vercel, and your entire deployment pipeline — in real time.",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
-  },
-  {
-    icon: Zap,
-    title: "Instant Deployment Sync",
-    description: "Deploy to Vercel, Railway, Render, and Netlify simultaneously. Monitor build logs streaming live from every provider.",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/20",
-  },
-  {
-    icon: Cpu,
-    title: "Multi-Model AI Layer",
-    description: "GPT-4, Claude, and Gemini analyze your logs, debug deployments, and recommend infrastructure changes autonomously.",
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
-  },
-  {
-    icon: Activity,
-    title: "Real-Time Event Bus",
-    description: "Supabase-powered websockets stream deployment events, log entries, and sync pulses across your entire team in under 50ms.",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
-  },
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "RBAC, encrypted token vaults, webhook signature verification, audit logs, and CSP hardening — production-grade from day one.",
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    border: "border-red-500/20",
-  },
-  {
-    icon: Globe,
-    title: "Universal Integrations",
-    description: "GitHub, Vercel, Supabase, Railway, Render, AWS, Docker, Kubernetes — all connected through a single unified API surface.",
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/20",
-  },
-];
+// --- NAVBAR COMPONENT ---
+function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
 
-const PROVIDERS = ["GitHub", "Vercel", "Supabase", "Railway", "Render", "AWS", "Docker", "Kubernetes"];
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-const TERMINAL_LINES = [
-  { t: 50,  c: "text-zinc-500", text: "# NexusForge deployment pipeline" },
-  { t: 400, c: "text-blue-400", text: "→ Connecting to GitHub..." },
-  { t: 800, c: "text-emerald-400", text: "✓ Repository synced: main@a3f8c91" },
-  { t: 1200, c: "text-amber-400", text: "→ Triggering Vercel deployment..." },
-  { t: 1800, c: "text-blue-400", text: "→ Building... [████████░░] 80%" },
-  { t: 2400, c: "text-emerald-400", text: "✓ Deployment ready: my-app.vercel.app" },
-  { t: 2900, c: "text-violet-400", text: "→ AI analyzing build artifacts..." },
-  { t: 3400, c: "text-emerald-400", text: "✓ No issues detected. Performance score: 98" },
-];
-
-function TerminalDemo() {
   return (
-    <div className="code-block p-4 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#1e2d40]">
-        <div className="w-3 h-3 rounded-full bg-red-500/70" />
-        <div className="w-3 h-3 rounded-full bg-amber-500/70" />
-        <div className="w-3 h-3 rounded-full bg-emerald-500/70" />
-        <span className="ml-2 text-xs text-zinc-500 font-mono">nexusforge — deployment pipeline</span>
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? "bg-[#06080c]/80 backdrop-blur-md border-b border-white/[0.05]" 
+          : "bg-transparent border-transparent"
+      }`}
+    >
+      <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-white to-zinc-400 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all">
+              <Zap className="w-4 h-4 text-black" fill="black" />
+            </div>
+            <span className="font-semibold text-white tracking-tight text-sm">NexusForge</span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-6">
+            {["Platform", "Infrastructure", "Changelog", "Docs"].map((item) => (
+              <Link 
+                key={item} 
+                href="#" 
+                className="text-[13px] font-medium text-zinc-400 hover:text-white transition-colors"
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-[11px] text-zinc-400 font-mono tracking-wide">
+            <Command className="w-3 h-3" /> K
+            <span className="ml-1 text-zinc-500">to search</span>
+          </div>
+          
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+
+          <Link 
+            href="/auth/login" 
+            className="text-[13px] font-medium text-zinc-300 hover:text-white transition-colors hidden sm:block"
+          >
+            Log in
+          </Link>
+          <Link 
+            href="/auth/register" 
+            className="h-8 inline-flex items-center justify-center px-4 rounded-md bg-white hover:bg-zinc-100 text-black text-[13px] font-semibold transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+          >
+            Deploy Now
+          </Link>
+        </div>
       </div>
-      <div className="space-y-1">
-        {TERMINAL_LINES.map((line, i) => (
+    </motion.header>
+  );
+}
+
+// --- TOPOLOGY VISUALIZATION COMPONENT ---
+function InfrastructureTopology() {
+  return (
+    <div className="relative w-full aspect-square md:aspect-auto md:h-[600px] flex items-center justify-center perspective-1000">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-[#06080c]/0 to-transparent blur-2xl" />
+      
+      {/* Central Orchestrator */}
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-20 w-24 h-24 rounded-2xl bg-[#0a0f18] border border-blue-500/30 flex items-center justify-center shadow-[0_0_40px_rgba(37,99,235,0.15)]"
+      >
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent" />
+        <Cpu className="w-8 h-8 text-blue-400" />
+        
+        {/* Pulse rings */}
+        {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: line.t / 1000, duration: 0.3 }}
-            className={`font-mono text-sm ${line.c}`}
-          >
-            {line.text}
-          </motion.div>
+            className="absolute inset-0 rounded-2xl border border-blue-500/20"
+            animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
+            transition={{ duration: 3, repeat: Infinity, delay: i * 1, ease: "linear" }}
+          />
         ))}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 3.8 }}
-          className="terminal-cursor font-mono text-sm text-zinc-500 mt-2"
+      </motion.div>
+
+      {/* Connection Lines (SVG) */}
+      <svg className="absolute inset-0 w-full h-full z-0 pointer-events-none" style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.1))" }}>
+        <motion.path 
+          d="M 20% 20% Q 50% 20% 50% 50%" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.05)" 
+          strokeWidth="1"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
         />
-      </div>
+        <motion.path 
+          d="M 80% 20% Q 50% 20% 50% 50%" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.05)" 
+          strokeWidth="1"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+        <motion.path 
+          d="M 20% 80% Q 50% 80% 50% 50%" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.05)" 
+          strokeWidth="1"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+        <motion.path 
+          d="M 80% 80% Q 50% 80% 50% 50%" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.05)" 
+          strokeWidth="1"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+
+        {/* Animated Data Packets */}
+        <motion.circle r="3" fill="#3b82f6" style={{ filter: "blur(1px)" }}>
+          <animateMotion dur="2s" repeatCount="indefinite" path="M 20% 20% Q 50% 20% 50% 50%" />
+        </motion.circle>
+        <motion.circle r="3" fill="#8b5cf6" style={{ filter: "blur(1px)" }}>
+          <animateMotion dur="2.5s" repeatCount="indefinite" path="M 80% 20% Q 50% 20% 50% 50%" />
+        </motion.circle>
+        <motion.circle r="3" fill="#10b981" style={{ filter: "blur(1px)" }}>
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 20% 80% Q 50% 80% 50% 50%" />
+        </motion.circle>
+        <motion.circle r="3" fill="#f59e0b" style={{ filter: "blur(1px)" }}>
+          <animateMotion dur="3s" repeatCount="indefinite" path="M 80% 80% Q 50% 80% 50% 50%" />
+        </motion.circle>
+      </svg>
+
+      {/* Provider Nodes */}
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="absolute top-[10%] left-[10%] w-14 h-14 rounded-xl bg-[#111] border border-white/10 flex items-center justify-center shadow-xl"
+      >
+        <GitBranch className="w-6 h-6 text-white" />
+        <div className="absolute -bottom-6 text-[10px] font-mono text-zinc-500">GITHUB_WEBHOOK</div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="absolute top-[10%] right-[10%] w-14 h-14 rounded-xl bg-black border border-white/10 flex items-center justify-center shadow-xl"
+      >
+        <Zap className="w-6 h-6 text-white" fill="white" />
+        <div className="absolute -bottom-6 text-[10px] font-mono text-zinc-500">VERCEL_EDGE</div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="absolute bottom-[10%] left-[10%] w-14 h-14 rounded-xl bg-[#1f2d26] border border-emerald-500/20 flex items-center justify-center shadow-xl"
+      >
+        <Database className="w-6 h-6 text-emerald-400" />
+        <div className="absolute -top-6 text-[10px] font-mono text-emerald-500/50">SUPABASE_DB</div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.8 }}
+        className="absolute bottom-[10%] right-[10%] w-14 h-14 rounded-xl bg-[#1a1525] border border-violet-500/20 flex items-center justify-center shadow-xl"
+      >
+        <Code2 className="w-6 h-6 text-violet-400" />
+        <div className="absolute -top-6 text-[10px] font-mono text-violet-500/50">AI_ORCHESTRATOR</div>
+      </motion.div>
+
     </div>
   );
 }
 
-export default function HomePage() {
+// --- MAIN PAGE ---
+export default function LandingPage() {
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
   return (
-    <div className="min-h-screen bg-[#080a0f] relative overflow-hidden">
-      {/* Grid background */}
-      <div className="fixed inset-0 grid-bg opacity-40 pointer-events-none" />
-      {/* Radial glow */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blue-600/8 rounded-full blur-[120px]" />
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-violet-600/6 rounded-full blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-[#06080c] selection:bg-white/10 text-white font-sans overflow-x-hidden">
+      <Navbar />
 
-      {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5 border-b border-[#1e2d40]/50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-lg text-white tracking-tight">NexusForge</span>
-          <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25 font-mono">
-            BETA
-          </span>
-        </div>
-        <div className="hidden md:flex items-center gap-6 text-sm text-zinc-400">
-          <Link href="#features" className="hover:text-white transition-colors">Features</Link>
-          <Link href="#architecture" className="hover:text-white transition-colors">Architecture</Link>
-          <Link href="/auth/login" className="hover:text-white transition-colors">Sign in</Link>
-        </div>
-        <Link
-          href="/auth/login"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-all duration-200 glow-blue"
+      {/* --- HERO SECTION --- */}
+      <section ref={containerRef} className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden border-b border-white/[0.02]">
+        {/* Deep Background Noise & Grid */}
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.015] mix-blend-overlay pointer-events-none" />
+        <div 
+          className="absolute inset-0 pointer-events-none" 
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+            backgroundSize: '64px 64px',
+            maskImage: 'radial-gradient(circle at center, black 0%, transparent 80%)'
+          }}
+        />
+
+        <motion.div 
+          style={{ y, opacity }}
+          className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center"
         >
-          Get Started <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 pt-24 pb-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-blue-500/20 text-xs text-blue-400 mb-8 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 pulse-dot" />
-            Real-time synchronized across all providers
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
-            <span className="gradient-text">The OS for</span>
-            <br />
-            <span className="text-white">Modern Development</span>
-          </h1>
-
-          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            NexusForge unifies GitHub, Vercel, Supabase, Railway, and your entire stack
-            into one AI-powered platform that orchestrates, synchronizes, and deploys — automatically.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-            <Link
-              href="/auth/login"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-200 text-sm glow-blue"
+          {/* Hero Left: Copy & CTA */}
+          <div className="relative z-10 max-w-2xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8"
             >
-              Start Building Free <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl glass border border-zinc-700/50 text-zinc-300 hover:text-white hover:border-zinc-500 font-medium transition-all duration-200 text-sm"
-            >
-              <Terminal className="w-4 h-4" />
-              View Dashboard
-            </Link>
-          </div>
-
-          {/* Provider pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-20">
-            {PROVIDERS.map((p) => (
-              <span
-                key={p}
-                className="px-3 py-1 text-xs font-mono rounded-md bg-[#0d1117] border border-[#1e2d40] text-zinc-400"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-
-          {/* Terminal demo */}
-          <div className="max-w-2xl mx-auto">
-            <TerminalDemo />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Everything in one place
-          </h2>
-          <p className="text-zinc-400 max-w-xl mx-auto">
-            No more tab switching between 12 dashboards. NexusForge is your single pane of glass.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.4 }}
-              className={`p-6 rounded-2xl border ${f.border} ${f.bg} hover:scale-[1.02] transition-transform duration-200 cursor-default`}
-            >
-              <div className={`w-10 h-10 rounded-lg ${f.bg} border ${f.border} flex items-center justify-center mb-4`}>
-                <f.icon className={`w-5 h-5 ${f.color}`} />
-              </div>
-              <h3 className="font-semibold text-white mb-2">{f.title}</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">{f.description}</p>
+              <span className="flex w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-mono tracking-wide text-zinc-400">NEXUS_ENGINE_v2.0_ONLINE</span>
             </motion.div>
-          ))}
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 md:px-12 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="glass-raised rounded-3xl p-12 border border-blue-500/10"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to unify your stack?
-          </h2>
-          <p className="text-zinc-400 mb-8 max-w-lg mx-auto">
-            Connect your first repository in under 60 seconds. No credit card required.
-          </p>
-          <Link
-            href="/auth/login"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-200 glow-blue"
-          >
-            Start for free <ChevronRight className="w-4 h-4" />
-          </Link>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl sm:text-6xl lg:text-[72px] font-medium tracking-tight text-white leading-[1.05] mb-6"
+            >
+              Orchestrate the <br className="hidden sm:block"/>
+              <span className="text-zinc-500">infrastructure layer.</span>
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-lg text-zinc-400 mb-10 leading-relaxed max-w-xl font-light"
+            >
+              A unified operating system for elite engineering teams. Synchronize GitHub, Vercel, and Supabase instantly with embedded AI orchestration and realtime deployment topology.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col sm:flex-row items-center gap-4"
+            >
+              <Link 
+                href="/auth/register"
+                className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 px-8 rounded-lg bg-white text-black font-medium hover:bg-zinc-100 hover:scale-[0.98] transition-all duration-200"
+              >
+                Start Deploying <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link 
+                href="#architecture"
+                className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 px-8 rounded-lg bg-white/[0.03] border border-white/10 text-white font-medium hover:bg-white/[0.05] transition-all duration-200"
+              >
+                Read Documentation
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Hero Right: Infrastructure Visualization */}
+          <div className="relative z-10">
+            <InfrastructureTopology />
+          </div>
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-[#1e2d40]/50 px-6 md:px-12 py-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-zinc-600">
-          <span className="flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-blue-500" />
-            NexusForge © {new Date().getFullYear()}
-          </span>
-          <span>The OS for modern development</span>
+      {/* --- ASYMMETRIC FEATURES SECTION --- */}
+      <section className="py-32 relative">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="mb-24 max-w-3xl">
+            <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-4">Precision engineered for scale.</h2>
+            <p className="text-zinc-400 text-lg font-light leading-relaxed">
+              We replaced disjointed dashboards with a single, high-performance command center. Everything operates over secure WebSocket channels with deterministic state management.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            {/* Feature 1 (Large Asymmetric) */}
+            <div className="md:col-span-8 group relative rounded-3xl bg-[#0d121c] border border-white/[0.05] p-8 md:p-12 overflow-hidden hover:border-white/[0.1] transition-colors">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10 max-w-md">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6">
+                  <Activity className="w-5 h-5 text-zinc-300" />
+                </div>
+                <h3 className="text-2xl font-medium mb-3 tracking-tight">Realtime Synchronization Engine</h3>
+                <p className="text-zinc-400 leading-relaxed font-light text-[15px]">
+                  Bypass standard REST polling. Our architecture leverages native PostgreSQL Logical Replication and Supabase Realtime to push deployment states to the client in &lt;50ms.
+                </p>
+              </div>
+              
+              {/* Decorative visual */}
+              <div className="absolute right-0 bottom-0 w-2/3 h-2/3 opacity-20 pointer-events-none translate-x-1/4 translate-y-1/4">
+                 <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 to-transparent blur-3xl" />
+              </div>
+            </div>
+
+            {/* Feature 2 (Small Vertical) */}
+            <div className="md:col-span-4 group relative rounded-3xl bg-[#0d121c] border border-white/[0.05] p-8 overflow-hidden hover:border-white/[0.1] transition-colors">
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6">
+                  <Terminal className="w-5 h-5 text-zinc-300" />
+                </div>
+                <h3 className="text-xl font-medium mb-3 tracking-tight">Live Log Streaming</h3>
+                <p className="text-zinc-400 leading-relaxed font-light text-[15px]">
+                  Terminal-grade log viewer that aggregates streams from Vercel, AWS, and Docker simultaneously into a single, filterable view.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 3 (Small Vertical) */}
+            <div className="md:col-span-4 group relative rounded-3xl bg-[#0d121c] border border-white/[0.05] p-8 overflow-hidden hover:border-white/[0.1] transition-colors">
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6">
+                  <Cpu className="w-5 h-5 text-zinc-300" />
+                </div>
+                <h3 className="text-xl font-medium mb-3 tracking-tight">AI Orchestration</h3>
+                <p className="text-zinc-400 leading-relaxed font-light text-[15px]">
+                  Inject deployment logs directly into the context window of Claude 3.5 Sonnet or GPT-4o for autonomous triage and resolution.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 4 (Large Asymmetric) */}
+            <div className="md:col-span-8 group relative rounded-3xl bg-[#0d121c] border border-white/[0.05] p-8 md:p-12 overflow-hidden hover:border-white/[0.1] transition-colors">
+               <div className="absolute inset-0 bg-gradient-to-tl from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10 max-w-md">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6">
+                  <Layers className="w-5 h-5 text-zinc-300" />
+                </div>
+                <h3 className="text-2xl font-medium mb-3 tracking-tight">Multi-Provider Abstraction</h3>
+                <p className="text-zinc-400 leading-relaxed font-light text-[15px]">
+                  A unified API surface for heterogeneous infrastructure. Deploy the same codebase to Vercel, Railway, and Render concurrently with a single trigger event.
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
+      </section>
+
+      {/* --- FOOTER CTA --- */}
+      <section className="py-32 relative border-t border-white/[0.02] overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-white/[0.03] via-[#06080c] to-[#06080c] pointer-events-none" />
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/10 mx-auto flex items-center justify-center mb-8 shadow-2xl">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-6">
+            Ready to deploy?
+          </h2>
+          <p className="text-xl text-zinc-400 mb-10 font-light">
+            Join the elite engineering teams building the future on NexusForge.
+          </p>
+          <Link 
+            href="/auth/register"
+            className="h-14 inline-flex items-center justify-center gap-2 px-10 rounded-xl bg-white text-black font-semibold hover:bg-zinc-100 hover:scale-[0.98] transition-all duration-200 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+          >
+            Create Free Workspace <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer minimal */}
+      <footer className="py-8 border-t border-white/[0.02] text-center">
+        <p className="text-xs text-zinc-600 font-mono">© 2026 NexusForge Infrastructure. All rights reserved.</p>
       </footer>
     </div>
   );
