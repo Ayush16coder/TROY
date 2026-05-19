@@ -142,17 +142,24 @@ export function ProviderIcon({ provider, size = "md", status, showLabel = false,
           initial={{ opacity: 0 }}
           whileHover={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="absolute inset-0 rounded-inherit"
+          className={cn(
+            "absolute inset-0 rounded-inherit",
+            (provider === "github" || provider === "vercel")
+              ? "bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.08)_0%,transparent_70%)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)]"
+              : ""
+          )}
           style={{
-            background: `radial-gradient(circle at center, ${config.monoColor}18 0%, transparent 70%)`,
+            background: (provider === "github" || provider === "vercel")
+              ? undefined
+              : `radial-gradient(circle at center, ${config.monoColor}18 0%, transparent 70%)`,
             borderRadius: "inherit",
           }}
         />
 
         <Icon
           size={iconSize}
-          style={{ color: config.monoColor }}
-          className="relative z-10"
+          style={(provider === "github" || provider === "vercel") ? undefined : { color: config.monoColor }}
+          className={cn("relative z-10", (provider === "github" || provider === "vercel") ? "text-zinc-900 dark:text-white" : "")}
         />
 
         {/* Status badge */}
@@ -186,7 +193,11 @@ export function ProviderBadge({ provider, className }: { provider: ProviderSlug;
       )}
       title={config.label}
     >
-      <Icon size={12} style={{ color: config.monoColor }} />
+      <Icon 
+        size={12} 
+        style={(provider === "github" || provider === "vercel") ? undefined : { color: config.monoColor }} 
+        className={(provider === "github" || provider === "vercel") ? "text-zinc-900 dark:text-white" : ""}
+      />
       {config.label}
     </span>
   );

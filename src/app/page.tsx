@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Zap, Activity, ArrowRight, Terminal, Cpu, Command, Layers,
   Wand2, FolderOpen, MoveRight, Code2, GitMerge, Star, GitCommit,
-  Search, Braces, CornerDownLeft, Box, Sliders, Menu, X
+  Search, Braces, CornerDownLeft, Box, Sliders, Menu, X, Hexagon
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -18,11 +18,14 @@ import { Separator } from "@/components/ui/separator";
 // ─── TROY LOGO ────────────────────────────────────────────────────────────────
 function TroyLogo() {
   return (
-    <div className="flex items-baseline transition-transform group-hover:scale-105 select-none">
-      <span className="text-2xl font-extrabold tracking-tighter font-serif text-foreground">T</span>
-      <span className="text-xl font-light tracking-widest font-sans text-muted-foreground">R</span>
-      <span className="text-2xl font-black font-mono text-primary">O</span>
-      <span className="text-xl font-medium italic font-serif text-foreground">Y</span>
+    <div className="flex items-center gap-2 transition-transform group-hover:scale-105 select-none">
+      <Hexagon className="w-7 h-7 text-foreground" strokeWidth={1.5} />
+      <div className="flex items-baseline">
+        <span className="text-2xl font-extrabold tracking-tighter font-serif text-foreground">T</span>
+        <span className="text-xl font-light tracking-widest font-sans text-muted-foreground">R</span>
+        <span className="text-2xl font-black font-mono text-primary">O</span>
+        <span className="text-xl font-medium italic font-serif text-foreground">Y</span>
+      </div>
     </div>
   );
 }
