@@ -110,7 +110,7 @@ export function LogsTerminal() {
           <div className="w-3 h-3 rounded-full bg-emerald-500/70" />
         </div>
         <Terminal className="w-3.5 h-3.5 text-zinc-600" />
-        <span className="text-xs text-zinc-600 font-mono">nexusforge — live logs</span>
+        <span className="text-xs text-zinc-600 font-mono">troy — live logs</span>
 
         <div className="flex items-center gap-1 ml-auto">
           {/* Level filter */}

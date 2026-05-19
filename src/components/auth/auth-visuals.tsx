@@ -45,11 +45,11 @@ export function AuthVisuals() {
 
       {/* Top Branding */}
       <div className="relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/10">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-white tracking-tight">NexusForge</span>
+        <div className="flex items-baseline select-none">
+          <span className="text-3xl font-extrabold tracking-tighter font-serif text-white">T</span>
+          <span className="text-2xl font-light tracking-widest font-sans text-zinc-300">R</span>
+          <span className="text-3xl font-black font-mono text-blue-500">O</span>
+          <span className="text-2xl font-medium italic font-serif text-white">Y</span>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export function AuthVisuals() {
       <div className="relative z-10">
         <blockquote className="space-y-4">
           <p className="text-xl font-medium text-zinc-300 leading-snug">
-            "NexusForge has fundamentally transformed how we deploy. It's the command center we didn't know we needed."
+            "TROY has fundamentally transformed how we deploy. It's the command center we didn't know we needed."
           </p>
           <footer className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#1e2d40] flex items-center justify-center">

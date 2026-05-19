@@ -1,24 +1,27 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: { default: "NexusForge", template: "%s | NexusForge" },
+  title: { default: "TROY", template: "%s | TROY" },
   description:
     "The unified AI-powered developer operating system. Connect GitHub, Vercel, Supabase, and your entire stack into one real-time synchronized platform.",
   keywords: ["developer platform", "CI/CD", "deployment", "GitHub", "Vercel", "AI", "DevOps"],
-  authors: [{ name: "NexusForge" }],
+  authors: [{ name: "TROY" }],
   openGraph: {
-    title: "NexusForge",
+    title: "TROY",
     description: "The unified AI-powered developer operating system.",
     type: "website",
-    siteName: "NexusForge",
+    siteName: "TROY",
   },
-  twitter: { card: "summary_large_image", title: "NexusForge" },
+  twitter: { card: "summary_large_image", title: "TROY" },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
 };
 
@@ -28,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body className={inter.variable}>
         <ThemeProvider
           attribute="class"

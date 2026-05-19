@@ -5,15 +5,33 @@ import Link from "next/link";
 import {
   Zap, Activity, ArrowRight, Terminal, Cpu, Command, Layers,
   Wand2, FolderOpen, MoveRight, Code2, GitMerge, Star, GitCommit,
-  Search, Braces, CornerDownLeft, Box, Sliders
+  Search, Braces, CornerDownLeft, Box, Sliders, Menu, X
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ProviderIcon, ProviderBadge, ProviderSlug, ProviderStatus } from "@/components/ui/provider-icon";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
+// ─── TROY LOGO ────────────────────────────────────────────────────────────────
+function TroyLogo() {
+  return (
+    <div className="flex items-baseline transition-transform group-hover:scale-105 select-none">
+      <span className="text-2xl font-extrabold tracking-tighter font-serif text-foreground">T</span>
+      <span className="text-xl font-light tracking-widest font-sans text-muted-foreground">R</span>
+      <span className="text-2xl font-black font-mono text-primary">O</span>
+      <span className="text-xl font-medium italic font-serif text-foreground">Y</span>
+    </div>
+  );
+}
 
 // ─── NAVBAR ───────────────────────────────────────────────────────────────────
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -21,49 +39,76 @@ function Navbar() {
   }, []);
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-background/80 backdrop-blur-md border-b border-border" : "bg-transparent"
-      }`}
-    >
-      <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-              <Zap className="w-4 h-4" fill="currentColor" />
+    <>
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+          scrolled ? "bg-background/80 backdrop-blur-md border-b border-border" : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center group">
+              <TroyLogo />
+            </Link>
+            <nav className="hidden md:flex items-center gap-6">
+              {["Platform", "Integrations", "Changelog", "Docs"].map((item) => (
+                <Link key={item} href="#" className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  {item}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            <Badge variant="secondary" className="hidden lg:flex items-center gap-1 font-mono text-[11px] rounded-md px-2 py-1">
+              <Command className="w-3 h-3" /> K
+            </Badge>
+            <Separator orientation="vertical" className="h-4 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-4">
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" asChild className="text-[13px]">
+                <Link href="/auth/login">Log in</Link>
+              </Button>
             </div>
-            <span className="font-semibold text-foreground tracking-tight text-sm">NexusForge</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
+            <Button size="sm" asChild className="text-[13px] font-semibold rounded-md shadow-md hover:scale-105 transition-all hidden sm:inline-flex">
+              <Link href="/auth/register">Deploy Now</Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm sm:hidden pt-20 px-6 flex flex-col">
+          <nav className="flex flex-col gap-6 items-center flex-1 justify-center">
             {["Platform", "Integrations", "Changelog", "Docs"].map((item) => (
-              <Link key={item} href="#" className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link key={item} href="#" className="text-2xl font-semibold" onClick={() => setMobileMenuOpen(false)}>
                 {item}
               </Link>
             ))}
+            <div className="h-[1px] w-full bg-border my-4 max-w-xs" />
+            <ThemeToggle />
+            <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
+              <Button variant="outline" className="w-full h-12 text-base" asChild onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/auth/login">Log in</Link>
+              </Button>
+              <Button className="w-full shadow-md h-12 text-base" asChild onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/auth/register">Deploy Now</Link>
+              </Button>
+            </div>
           </nav>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-secondary border border-border text-[11px] text-muted-foreground font-mono">
-            <Command className="w-3 h-3" /> K
-          </div>
-          <div className="h-4 w-px bg-border hidden sm:block" />
-          <ThemeToggle />
-          <Link href="/auth/login" className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-            Log in
-          </Link>
-          <Link href="/auth/register" className="h-8 inline-flex items-center justify-center px-4 rounded-md bg-foreground hover:bg-foreground/90 text-background text-[13px] font-semibold transition-all shadow-md hover:scale-105">
-            Deploy Now
-          </Link>
-        </div>
-      </div>
-    </motion.header>
+      )}
+    </>
   );
 }
 
-// ─── INFRASTRUCTURE TOPOLOGY (Real Brand Icons) ───────────────────────────────
+// ─── INFRASTRUCTURE TOPOLOGY ──────────────────────────────────────────────────
 function InfrastructureTopology() {
   const nodes: { provider: ProviderSlug; x: string; y: string; delay: number; label: string }[] = [
     { provider: "github",     x: "8%",  y: "10%", delay: 0.2, label: "SOURCE_CONTROL" },
@@ -75,8 +120,8 @@ function InfrastructureTopology() {
   ];
 
   const paths = [
-    { d: "M 15% 17% Q 48% 17% 50% 50%", color: "#ffffff", dur: "2.2s" },
-    { d: "M 81% 17% Q 52% 17% 50% 50%", color: "#ffffff", dur: "2.8s" },
+    { d: "M 15% 17% Q 48% 17% 50% 50%", color: "currentColor", dur: "2.2s" },
+    { d: "M 81% 17% Q 52% 17% 50% 50%", color: "currentColor", dur: "2.8s" },
     { d: "M 15% 75% Q 48% 75% 50% 50%", color: "#3ecf8e", dur: "1.9s" },
     { d: "M 81% 75% Q 52% 75% 50% 50%", color: "#2496ed", dur: "3.1s" },
     { d: "M 50% 8% Q 50% 30% 50% 50%",  color: "#8ab4f8", dur: "2.5s" },
@@ -84,11 +129,11 @@ function InfrastructureTopology() {
   ];
 
   return (
-    <div className="relative w-full h-[480px] flex items-center justify-center select-none">
+    <div className="relative w-full h-[320px] md:h-[480px] flex items-center justify-center select-none overflow-hidden md:overflow-visible">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/8 via-transparent to-transparent blur-3xl pointer-events-none" />
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none text-border" preserveAspectRatio="none">
         {paths.map((p, i) => (
-          <motion.path key={i} d={p.d} fill="none" stroke="var(--border)"
+          <motion.path key={i} d={p.d} fill="none" stroke="currentColor"
             strokeWidth="1.5" strokeDasharray="6 4"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
@@ -104,10 +149,9 @@ function InfrastructureTopology() {
         ))}
       </svg>
 
-      {/* Central Orchestrator */}
       <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-20 w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center shadow-xl"
+        className="relative z-20 w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-card border border-border flex items-center justify-center shadow-xl"
       >
         <Cpu className="w-8 h-8 text-primary" strokeWidth={1.5} />
         {[0, 1, 2].map((i) => (
@@ -124,7 +168,7 @@ function InfrastructureTopology() {
       {nodes.map(({ provider, x, y, delay, label }) => (
         <motion.div key={provider} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute flex flex-col items-center gap-1.5" style={{ left: x, top: y }}
+          className="absolute flex flex-col items-center gap-1.5 transform scale-75 md:scale-100" style={{ left: x, top: y }}
         >
           <ProviderIcon provider={provider} size="lg" status="connected" />
           <span className="text-[9px] font-mono text-muted-foreground">{label}</span>
@@ -135,7 +179,6 @@ function InfrastructureTopology() {
 }
 
 // ─── CONNECTED PLATFORMS MARQUEE ──────────────────────────────────────────────
-// Matches the reference: dark rounded containers, colored SVG logos, status dots, labels below
 const MARQUEE_PROVIDERS: { slug: ProviderSlug; status: ProviderStatus }[] = [
   { slug: "kubernetes", status: "connected" },
   { slug: "aws",        status: "connected" },
@@ -184,9 +227,8 @@ function PlatformsMarquee() {
           >
             <ProviderIcon
               provider={slug}
-              size="md"
-              status={status}
-              showLabel
+              size="2xl"
+              variant="ghost"
             />
           </motion.div>
         ))}
@@ -195,7 +237,7 @@ function PlatformsMarquee() {
   );
 }
 
-// ─── CAPABILITIES ROW (light circles with thin icons — image 2 reference) ─────
+// ─── CAPABILITIES ROW ─────────────────────────────────────────────────────────
 const CAPABILITIES = [
   { icon: Sliders,        label: "Orchestrate"  },
   { icon: Wand2,          label: "AI Triage"    },
@@ -226,21 +268,25 @@ function CapabilitiesRow() {
 
       <motion.div
         animate={{ x: ["-50%", "0%"] }}
-        transition={{ duration: 40, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+        transition={{ duration: 60, repeat: Infinity, ease: "linear", repeatType: "loop" }}
         style={{ width: "max-content", animationPlayState: paused ? "paused" : "running" }}
-        className="flex items-center gap-5 py-4"
+        className="flex items-center gap-4 py-12 pl-10"
       >
-        {[...CAPABILITIES, ...CAPABILITIES].map(({ icon: Icon, label }, i) => (
+        {[...CAPABILITIES, ...CAPABILITIES, ...CAPABILITIES, ...CAPABILITIES].map(({ icon: Icon, label }, i) => (
           <motion.div
             key={`${label}-${i}`}
-            whileHover={{ y: -4, scale: 1.08 }}
-            transition={{ type: "spring", stiffness: 420, damping: 16 }}
-            className="flex flex-col items-center gap-2 cursor-default group flex-shrink-0"
+            animate={{ y: [-40, 40, -40] }}
+            transition={{
+              y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 },
+              scale: { type: "spring", stiffness: 420, damping: 16 }
+            }}
+            whileHover={{ scale: 1.1, zIndex: 50 }}
+            className="flex flex-col items-center cursor-default group flex-shrink-0 relative"
+            style={{ zIndex: i }}
           >
-            <div className="w-14 h-14 rounded-full bg-secondary border border-border flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:border-foreground/30 transition-all duration-200">
-              <Icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-150" strokeWidth={1.5} />
+            <div className="w-20 h-20 rounded-full bg-background border border-border/60 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200">
+              <Icon className="w-6 h-6 text-foreground/80 group-hover:text-foreground transition-colors duration-150" strokeWidth={1} />
             </div>
-            <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors whitespace-nowrap">{label}</span>
           </motion.div>
         ))}
       </motion.div>
@@ -249,6 +295,44 @@ function CapabilitiesRow() {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────────────────────────────
+function AntigravityBackground() {
+  const particles = Array.from({ length: 250 }).map((_, i) => {
+    const r = Math.sqrt(i) * 45; 
+    const theta = i * Math.PI * (3 - Math.sqrt(5)); 
+    const x = r * Math.cos(theta);
+    const y = r * Math.sin(theta);
+    const rotation = (theta * 180) / Math.PI + 90; 
+    const color = i % 2 === 0 ? "#3b82f6" : i % 3 === 0 ? "#8b5cf6" : "#60a5fa";
+    return { x, y, rotation, color, delay: (i % 50) * 0.1 };
+  });
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center opacity-60">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
+        className="relative w-[1200px] h-[1200px] translate-x-[20%] md:translate-x-[35%]"
+      >
+        {particles.map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.1, 0.7, 0.1] }}
+            transition={{ duration: 4, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+            className="absolute top-1/2 left-1/2 rounded-full"
+            style={{
+              width: 3,
+              height: 12,
+              backgroundColor: p.color,
+              transform: `translate(-50%, -50%) translate(${p.x}px, ${p.y}px) rotate(${p.rotation}deg)`,
+            }}
+          />
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
@@ -260,103 +344,70 @@ export default function LandingPage() {
       <Navbar />
 
       {/* HERO */}
-      <section ref={containerRef} className="relative pt-36 pb-20 md:pt-52 md:pb-32 overflow-hidden border-b border-border">
-        <div className="absolute inset-0 noise-overlay" />
-        <div className="absolute inset-0 infra-grid pointer-events-none"
-          style={{ maskImage: "radial-gradient(circle at 50% 40%, black 0%, transparent 75%)" }}
-        />
+      <section ref={containerRef} className="relative pt-40 pb-32 md:pt-56 md:pb-48 overflow-hidden flex flex-col items-center justify-center text-center">
+        <AntigravityBackground />
+        
+        <div className="absolute inset-0 noise-overlay opacity-30 pointer-events-none z-0" />
+        
         <motion.div style={{ y, opacity }}
-          className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-0 items-center"
+          className="max-w-[1000px] mx-auto px-6 relative z-10 flex flex-col items-center"
         >
-          {/* Left */}
-          <div className="max-w-xl">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border mb-8 text-[11px] font-mono text-muted-foreground"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              NEXUS_ENGINE_v2.0 — 18 providers online
-            </motion.div>
+          {/* Logo / Badge */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="flex items-center gap-2 mb-8 bg-card/80 backdrop-blur-sm border border-border px-3 py-1.5 rounded-full shadow-sm"
+          >
+             <div className="w-5 h-5 rounded flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-primary" fill="currentColor" />
+             </div>
+             <span className="text-sm font-medium tracking-tight">TROY Agent Platform</span>
+          </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl sm:text-6xl lg:text-[72px] font-medium tracking-tight leading-[1.04] mb-6"
-            >
-              Orchestrate the<br />
-              <span className="text-muted-foreground">infrastructure layer.</span>
-            </motion.h1>
+          {/* Heading */}
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-5xl md:text-6xl lg:text-[76px] font-medium tracking-tight leading-[1.05] mb-10 text-foreground max-w-4xl"
+          >
+            Experience liftoff with the next-gen agent platform
+          </motion.h1>
 
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-lg text-muted-foreground mb-10 leading-relaxed font-light"
-            >
-              A unified operating system for elite engineering teams. Synchronize GitHub, Vercel, and Supabase instantly — with embedded AI orchestration and realtime deployment topology.
-            </motion.p>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-wrap items-center gap-4 mb-12"
-            >
-              <Link href="/auth/register"
-                className="h-12 inline-flex items-center gap-2 px-8 rounded-lg bg-foreground text-background font-medium hover:scale-[0.98] transition-transform shadow-lg"
-              >
-                Start Deploying <ArrowRight className="w-4 h-4" />
+          {/* Buttons */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col sm:flex-row items-center gap-4"
+          >
+            <Button size="lg" asChild className="h-14 px-8 text-base rounded-full shadow-xl hover:scale-[1.02] transition-transform w-full sm:w-auto">
+              <Link href="/auth/register">
+                Download for Windows
               </Link>
-              <Link href="#platforms"
-                className="h-12 inline-flex items-center gap-2 px-8 rounded-lg bg-secondary border border-border font-medium hover:bg-secondary/70 transition-colors"
-              >
-                View Integrations
+            </Button>
+            <Button size="lg" variant="outline" asChild className="h-14 px-8 text-base rounded-full shadow-sm bg-secondary/50 backdrop-blur-sm border-border hover:bg-secondary w-full sm:w-auto">
+              <Link href="#platforms">
+                Explore use cases
               </Link>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }}
-              className="flex flex-wrap gap-2"
-            >
-              {(["github", "vercel", "supabase", "docker", "anthropic"] as const).map((p) => (
-                <ProviderBadge key={p} provider={p} />
-              ))}
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-secondary border border-border text-[11px] font-medium text-muted-foreground">
-                +13 more
-              </span>
-            </motion.div>
-          </div>
-
-          {/* Right: topology */}
-          <div className="relative">
-            <InfrastructureTopology />
-          </div>
+            </Button>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* CONNECTED PLATFORMS — matches reference image 1 */}
-      <section id="platforms" className="py-12 border-b border-border">
-        <div className="max-w-[1400px] mx-auto px-6 mb-5">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">Connected Platforms</p>
-        </div>
+      {/* CONNECTED PLATFORMS */}
+      <section id="platforms" className="py-8">
         <PlatformsMarquee />
       </section>
 
-      {/* CAPABILITIES ROW — matches reference image 2 */}
-      <section className="py-12 border-b border-border">
-        <div className="max-w-[1400px] mx-auto px-6 mb-5">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">Platform Capabilities</p>
-        </div>
-        <CapabilitiesRow />
-      </section>
-
       {/* ASYMMETRIC FEATURES */}
-      <section className="py-32">
+      <section className="py-32 bg-background">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="mb-20 max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-4">Precision engineered for scale.</h2>
-            <p className="text-muted-foreground text-lg font-light leading-relaxed">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">Precision engineered for scale.</h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
               We replaced disjointed dashboards with a single, high-performance command center operating over secure WebSocket channels.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-            <div className="md:col-span-8 group relative rounded-2xl bg-card border border-border p-8 md:p-12 overflow-hidden hover:border-foreground/20 transition-all shadow-sm hover:shadow-md">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
+            <Card className="md:col-span-8 group relative overflow-hidden hover:border-primary/50 transition-all shadow-sm hover:shadow-md border-border bg-card">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardHeader className="relative z-10 pb-0 pt-8 px-8 md:px-12">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
                     <Activity className="w-5 h-5 text-foreground" strokeWidth={1.5} />
@@ -367,43 +418,53 @@ export default function LandingPage() {
                     <ProviderIcon provider="github"   size="sm" status="connected" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-medium mb-3 tracking-tight">Realtime Synchronization Engine</h3>
-                <p className="text-muted-foreground leading-relaxed font-light text-[15px] max-w-sm">
+                <CardTitle className="text-2xl tracking-tight">Realtime Synchronization Engine</CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 pt-4 px-8 md:px-12 pb-8 md:pb-12">
+                <p className="text-muted-foreground leading-relaxed text-[15px] max-w-sm">
                   Bypass REST polling. Our architecture leverages PostgreSQL Logical Replication and Supabase Realtime to push deployment states in &lt;50ms.
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="md:col-span-4 group relative rounded-2xl bg-card border border-border p-8 overflow-hidden hover:border-foreground/20 transition-all shadow-sm hover:shadow-md">
-              <div className="mb-6 flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
-                  <Terminal className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+            <Card className="md:col-span-4 group relative overflow-hidden hover:border-primary/50 transition-all shadow-sm hover:shadow-md border-border bg-card">
+              <CardHeader className="pb-0 pt-8 px-8">
+                <div className="mb-6 flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
+                    <Terminal className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+                  </div>
+                  <ProviderIcon provider="docker" size="sm" status="connected" />
                 </div>
-                <ProviderIcon provider="docker" size="sm" status="connected" />
-              </div>
-              <h3 className="text-xl font-medium mb-3 tracking-tight">Live Log Streaming</h3>
-              <p className="text-muted-foreground leading-relaxed font-light text-[15px]">
-                Aggregate streams from Vercel, Docker, and AWS into one filterable terminal view.
-              </p>
-            </div>
+                <CardTitle className="text-xl tracking-tight">Live Log Streaming</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 px-8 pb-8">
+                <p className="text-muted-foreground leading-relaxed text-[15px]">
+                  Aggregate streams from Vercel, Docker, and AWS into one filterable terminal view.
+                </p>
+              </CardContent>
+            </Card>
 
-            <div className="md:col-span-4 group relative rounded-2xl bg-card border border-border p-8 overflow-hidden hover:border-foreground/20 transition-all shadow-sm hover:shadow-md">
-              <div className="mb-6 flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
-                  <Cpu className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+            <Card className="md:col-span-4 group relative overflow-hidden hover:border-primary/50 transition-all shadow-sm hover:shadow-md border-border bg-card">
+              <CardHeader className="pb-0 pt-8 px-8">
+                <div className="mb-6 flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
+                    <Cpu className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+                  </div>
+                  <ProviderIcon provider="anthropic" size="sm" />
+                  <ProviderIcon provider="gemini"    size="sm" />
                 </div>
-                <ProviderIcon provider="anthropic" size="sm" />
-                <ProviderIcon provider="gemini"    size="sm" />
-              </div>
-              <h3 className="text-xl font-medium mb-3 tracking-tight">AI Orchestration</h3>
-              <p className="text-muted-foreground leading-relaxed font-light text-[15px]">
-                Inject deployment logs into Claude 3.5 or Gemini for autonomous triage and resolution.
-              </p>
-            </div>
+                <CardTitle className="text-xl tracking-tight">AI Orchestration</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 px-8 pb-8">
+                <p className="text-muted-foreground leading-relaxed text-[15px]">
+                  Inject deployment logs into Claude 3.5 or Gemini for autonomous triage and resolution.
+                </p>
+              </CardContent>
+            </Card>
 
-            <div className="md:col-span-8 group relative rounded-2xl bg-card border border-border p-8 md:p-12 overflow-hidden hover:border-foreground/20 transition-all shadow-sm hover:shadow-md">
-              <div className="absolute inset-0 bg-gradient-to-tl from-violet-500/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
+            <Card className="md:col-span-8 group relative overflow-hidden hover:border-primary/50 transition-all shadow-sm hover:shadow-md border-border bg-card">
+              <div className="absolute inset-0 bg-gradient-to-tl from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardHeader className="relative z-10 pb-0 pt-8 px-8 md:px-12">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center">
                     <Layers className="w-5 h-5 text-foreground" strokeWidth={1.5} />
@@ -414,37 +475,75 @@ export default function LandingPage() {
                     <ProviderIcon provider="render"  size="sm" status="idle"      />
                   </div>
                 </div>
-                <h3 className="text-2xl font-medium mb-3 tracking-tight">Multi-Provider Abstraction</h3>
-                <p className="text-muted-foreground leading-relaxed font-light text-[15px] max-w-sm">
+                <CardTitle className="text-2xl tracking-tight">Multi-Provider Abstraction</CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 pt-4 px-8 md:px-12 pb-8 md:pb-12">
+                <p className="text-muted-foreground leading-relaxed text-[15px] max-w-sm">
                   A unified API surface for heterogeneous infrastructure. Deploy simultaneously to Vercel, Railway, and Render with a single trigger.
                 </p>
-              </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CAPABILITIES ROW */}
+      <section className="py-12">
+        <div className="max-w-[1400px] mx-auto px-6 mb-2 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Platform Capabilities</h2>
+        </div>
+        <CapabilitiesRow />
+      </section>
+
+      {/* MEGA FOOTER */}
+      <footer className="pt-24 pb-12 px-6 md:px-12 bg-background relative overflow-hidden flex flex-col border-t border-border/30 mt-12">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none" />
+        
+        {/* Top Info */}
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start max-w-[1400px] mx-auto w-full mb-12 gap-16 md:gap-12 pt-12">
+          <h2 className="text-3xl md:text-5xl font-medium tracking-tight">Experience liftoff</h2>
+          <div className="grid grid-cols-2 gap-x-16 md:gap-x-32 gap-y-4 text-sm font-medium text-muted-foreground">
+            <div className="flex flex-col gap-4">
+              <Link href="#" className="hover:text-primary transition-colors">Download</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Product</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Docs</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Changelog</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Press</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Releases</Link>
+            </div>
+            <div className="flex flex-col gap-4">
+              <Link href="#" className="hover:text-primary transition-colors">Blog</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Pricing</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Use Cases</Link>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* FOOTER CTA */}
-      <section className="py-32 border-t border-border relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none" />
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-secondary border border-border mx-auto flex items-center justify-center mb-8 shadow-xl">
-            <Zap className="w-7 h-7 text-foreground" />
+        {/* Massive TROY Name */}
+        <div className="relative z-10 w-full flex justify-center items-center py-12 md:py-20 select-none pointer-events-none overflow-hidden">
+          <div className="flex items-baseline text-[25vw] md:text-[22vw] leading-[0.8] tracking-tighter">
+            <span className="font-extrabold font-serif text-foreground">T</span>
+            <span className="font-light tracking-wide font-sans text-muted-foreground/80 -ml-[2vw]">R</span>
+            <span className="font-black font-mono text-primary -ml-[1vw]">O</span>
+            <span className="font-medium italic font-serif text-foreground -ml-[1vw]">Y</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-6">Ready to deploy?</h2>
-          <p className="text-xl text-muted-foreground mb-10 font-light">
-            Join the elite engineering teams building the future on NexusForge.
-          </p>
-          <Link href="/auth/register"
-            className="h-14 inline-flex items-center gap-2 px-10 rounded-xl bg-foreground text-background font-semibold hover:scale-[0.98] transition-transform shadow-xl shadow-primary/10"
-          >
-            Create Free Workspace <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
-      </section>
 
-      <footer className="py-8 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground font-mono">© 2026 NexusForge Infrastructure. All rights reserved.</p>
+        {/* Bottom Bar */}
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center max-w-[1400px] mx-auto w-full pt-8 border-t border-border/40 gap-6">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center shadow-sm">
+              <Zap className="w-4 h-4" fill="currentColor" />
+            </div>
+            <span className="font-semibold text-foreground tracking-tight group-hover:opacity-80 transition-opacity">TROY</span>
+          </Link>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-muted-foreground font-medium">
+            <Link href="#" className="hover:text-foreground transition-colors">About TROY</Link>
+            <Link href="#" className="hover:text-foreground transition-colors">Products</Link>
+            <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

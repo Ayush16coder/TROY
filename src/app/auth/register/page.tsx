@@ -1,12 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GitBranch, Mail, Lock, ArrowRight, Eye, EyeOff, User, Loader2, Building, CheckCircle2 } from "lucide-react";
+import { GitBranch, Mail, Lock, Eye, EyeOff, User, Loader2, Building } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -78,146 +83,162 @@ export default function RegisterPage() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="w-full"
     >
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-white tracking-tight mb-2">Create account</h1>
-        <p className="text-zinc-400 text-sm">Join the next-generation deployment orchestrator.</p>
-      </div>
-
-      <div className="space-y-6">
-        <button 
-          onClick={handleGithubSignup}
-          disabled={githubLoading}
-          className="w-full group flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white text-black hover:bg-zinc-100 font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {githubLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
-          ) : (
-            <GitBranch className="w-5 h-5" />
-          )}
-          {githubLoading ? "Connecting..." : "Sign up with GitHub"}
-        </button>
-
-        <div className="flex items-center gap-3 text-xs text-zinc-600 font-medium">
-          <div className="flex-1 h-px bg-[#1e2d40]" />
-          <span className="uppercase tracking-wider">or sign up with email</span>
-          <div className="flex-1 h-px bg-[#1e2d40]" />
-        </div>
-
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Full Name</label>
-              <div className="relative group">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
-                  placeholder="John Doe"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Workspace</label>
-              <div className="relative group">
-                <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
-                <input
-                  type="text"
-                  required
-                  value={workspace}
-                  onChange={(e) => setWorkspace(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
-                  placeholder="Acme Inc"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-300">Email Address</label>
-            <div className="relative group">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
-                placeholder="you@company.com"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-300">Password</label>
-            <div className="relative group">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-11 py-3 bg-[#0d1421] border border-[#1e2d40] focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-xl text-white text-sm transition-all shadow-inner shadow-black/20 outline-none"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors rounded-md hover:bg-[#1e2d40]"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            
-            {/* Password Strength */}
-            {password.length > 0 && (
-              <div className="pt-2 flex items-center gap-2">
-                <div className="flex-1 flex gap-1 h-1">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div 
-                      key={i} 
-                      className={`flex-1 rounded-full transition-colors duration-300 ${
-                        i <= passwordStrength 
-                          ? (passwordStrength < 2 ? 'bg-red-500' : passwordStrength < 4 ? 'bg-amber-400' : 'bg-emerald-500')
-                          : 'bg-[#1e2d40]'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 w-12 text-right">
-                  {passwordStrength < 2 ? 'Weak' : passwordStrength < 4 ? 'Good' : 'Strong'}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || (password.length > 0 && passwordStrength < 2)}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium px-4 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] mt-4 disabled:opacity-50 disabled:shadow-none"
+      <Card className="w-full border-border bg-card shadow-2xl">
+        <CardHeader className="space-y-2 text-center pb-6">
+          <CardTitle className="text-3xl font-semibold tracking-tight">Create account</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Join the next-generation deployment orchestrator.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Button
+            variant="outline"
+            className="w-full h-11 relative group bg-background"
+            onClick={handleGithubSignup}
+            disabled={githubLoading}
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
-            {!loading && <ArrowRight className="w-4 h-4" />}
-          </button>
-        </form>
+            {githubLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2 text-muted-foreground" />
+            ) : (
+              <GitBranch className="w-4 h-4 mr-2" />
+            )}
+            <span>{githubLoading ? "Connecting..." : "Sign up with GitHub"}</span>
+          </Button>
 
-        <p className="text-center text-zinc-500 text-sm mt-6">
-          By signing up, you agree to our{" "}
-          <Link href="#" className="text-white hover:text-blue-400 transition-colors">Terms</Link> and{" "}
-          <Link href="#" className="text-white hover:text-blue-400 transition-colors">Privacy Policy</Link>.
-        </p>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground font-medium tracking-wider">
+                Or sign up with email
+              </span>
+            </div>
+          </div>
 
-      </div>
-      
-      <p className="text-center text-sm text-zinc-500 mt-8">
-        Already have an account?{" "}
-        <Link href="/auth/login" className="text-white font-medium hover:text-blue-400 transition-colors">
-          Sign in
-        </Link>
-      </p>
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-muted-foreground">Full Name</Label>
+                <div className="relative group">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-9 h-11 bg-background"
+                    placeholder="John Doe"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="workspace" className="text-muted-foreground">Workspace</Label>
+                <div className="relative group">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input
+                    id="workspace"
+                    type="text"
+                    required
+                    value={workspace}
+                    onChange={(e) => setWorkspace(e.target.value)}
+                    className="pl-9 h-11 bg-background"
+                    placeholder="Acme Inc"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-muted-foreground">Email Address</Label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-9 h-11 bg-background"
+                  placeholder="you@company.com"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-muted-foreground">Password</Label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-9 pr-9 h-11 bg-background"
+                  placeholder="••••••••"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              
+              {password.length > 0 && (
+                <div className="pt-2 flex items-center gap-2">
+                  <div className="flex-1 flex gap-1 h-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div 
+                        key={i} 
+                        className={`flex-1 rounded-full transition-colors duration-300 ${
+                          i <= passwordStrength 
+                            ? (passwordStrength < 2 ? 'bg-red-500' : passwordStrength < 4 ? 'bg-amber-400' : 'bg-emerald-500')
+                            : 'bg-muted'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground w-12 text-right">
+                    {passwordStrength < 2 ? 'Weak' : passwordStrength < 4 ? 'Good' : 'Strong'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading || (password.length > 0 && passwordStrength < 2)}
+              className="w-full h-11 font-medium mt-4 group"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Create Account"}
+            </Button>
+          </form>
+
+          <p className="text-center text-muted-foreground text-xs mt-6">
+            By signing up, you agree to our{" "}
+            <Link href="#" className="text-foreground hover:text-primary transition-colors">Terms</Link> and{" "}
+            <Link href="#" className="text-foreground hover:text-primary transition-colors">Privacy Policy</Link>.
+          </p>
+        </CardContent>
+        
+        <CardFooter className="flex justify-center pt-2 pb-6">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="font-medium text-foreground hover:text-primary transition-colors">
+              Sign in
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </motion.div>
   );
 }

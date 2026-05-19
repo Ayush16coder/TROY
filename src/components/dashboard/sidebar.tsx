@@ -41,12 +41,14 @@ export function DashboardSidebar({ user }: Props) {
   return (
     <aside className="w-56 flex-shrink-0 flex flex-col border-r border-border bg-background">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-border">
-        <div className="w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center flex-shrink-0 shadow-sm">
-          <Zap className="w-3.5 h-3.5" fill="currentColor" />
+      <div className="flex items-center px-4 py-4 border-b border-border">
+        <div className="flex items-baseline select-none flex-1">
+          <span className="text-xl font-extrabold tracking-tighter font-serif text-foreground">T</span>
+          <span className="text-lg font-light tracking-widest font-sans text-muted-foreground">R</span>
+          <span className="text-xl font-black font-mono text-primary">O</span>
+          <span className="text-lg font-medium italic font-serif text-foreground">Y</span>
         </div>
-        <span className="font-semibold text-foreground text-sm tracking-tight">NexusForge</span>
-        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-auto" />
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
       </div>
 
       {/* Navigation */}

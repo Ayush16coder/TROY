@@ -103,10 +103,11 @@ function StatusDot({ status }: { status: ProviderStatus }) {
 
 interface ProviderIconProps {
   provider: ProviderSlug;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   status?: ProviderStatus;
   showLabel?: boolean;
   className?: string;
+  variant?: "default" | "ghost";
 }
 
 const sizeMap = {
@@ -114,9 +115,10 @@ const sizeMap = {
   md: { container: "w-11 h-11 rounded-xl",  iconSize: 20, text: "text-xs"    },
   lg: { container: "w-14 h-14 rounded-2xl", iconSize: 26, text: "text-xs"    },
   xl: { container: "w-18 h-18 rounded-2xl", iconSize: 32, text: "text-sm"    },
+  "2xl": { container: "w-24 h-24 rounded-3xl", iconSize: 56, text: "text-base" },
 };
 
-export function ProviderIcon({ provider, size = "md", status, showLabel = false, className }: ProviderIconProps) {
+export function ProviderIcon({ provider, size = "md", status, showLabel = false, className, variant = "default" }: ProviderIconProps) {
   const config = PROVIDERS[provider];
   if (!config) return null;
   const { container, iconSize, text } = sizeMap[size];
@@ -129,7 +131,8 @@ export function ProviderIcon({ provider, size = "md", status, showLabel = false,
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 420, damping: 17 }}
         className={cn(
-          "relative flex items-center justify-center bg-card border border-border shadow-sm hover:shadow-md transition-shadow duration-200 cursor-default",
+          "relative flex items-center justify-center transition-shadow duration-200 cursor-default",
+          variant === "default" ? "bg-card border border-border shadow-sm hover:shadow-md" : "bg-transparent border-transparent shadow-none",
           container
         )}
         title={config.label}
