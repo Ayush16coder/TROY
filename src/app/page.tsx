@@ -534,11 +534,8 @@ export default function LandingPage() {
 
         {/* Bottom Bar */}
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center max-w-[1400px] mx-auto w-full pt-8 border-t border-border/40 gap-6">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center shadow-sm">
-              <Zap className="w-4 h-4" fill="currentColor" />
-            </div>
-            <span className="font-semibold text-foreground tracking-tight group-hover:opacity-80 transition-opacity">TROY</span>
+          <Link href="/" className="group block scale-75 md:scale-90 origin-left opacity-90 hover:opacity-100 transition-opacity">
+            <TroyLogo />
           </Link>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-muted-foreground font-medium">
             <Link href="#" className="hover:text-foreground transition-colors">About TROY</Link>
