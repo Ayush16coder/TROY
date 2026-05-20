@@ -21,12 +21,12 @@ export async function GET(
 
   if (code) {
     // 1. Get workspace ID
-    const { data: workspaceMember } = await supabase
+    const { data: workspaceMember } = await (supabase as any)
       .from("workspace_members")
       .select("workspace_id")
       .eq("user_id", user.id)
       .limit(1)
-      .single();
+      .single() as { data: { workspace_id: string } | null };
 
     if (!workspaceMember) {
       return NextResponse.redirect(`${origin}/dashboard?error=no_workspace`);
