@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const ACTIONS = [
-  { icon: Plus, label: "New Project", desc: "Create from template or repo", href: "/dashboard/projects/new", color: "text-blue-400", border: "border-blue-500/20", bg: "hover:bg-blue-500/5" },
+  { icon: Plus, label: "New Project", desc: "Create from template or repo", href: "/dashboard/new", color: "text-blue-400", border: "border-blue-500/20", bg: "hover:bg-blue-500/5" },
   { icon: Rocket, label: "Trigger Deploy", desc: "Deploy latest commit now", href: "/dashboard/deployments/new", color: "text-emerald-400", border: "border-emerald-500/20", bg: "hover:bg-emerald-500/5" },
   { icon: GitBranch, label: "Sync Repos", desc: "Pull latest from GitHub", href: "/dashboard/repositories", color: "text-violet-400", border: "border-violet-500/20", bg: "hover:bg-violet-500/5" },
   { icon: Cpu, label: "Ask AI", desc: "Debug with GPT-4 or Claude", href: "/dashboard/ai", color: "text-amber-400", border: "border-amber-500/20", bg: "hover:bg-amber-500/5" },

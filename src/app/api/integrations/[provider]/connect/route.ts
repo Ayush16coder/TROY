@@ -28,7 +28,7 @@ export async function GET(
     const state = encodeURIComponent(nextUrl);
     authUrl = `https://vercel.com/oauth/authorize?client_id=${clientId}&state=${state}`;
   } else if (provider === "supabase") {
-    const clientId = process.env.SUPABASE_CLIENT_ID;
+    const clientId = process.env.SUPABASE_MANAGEMENT_CLIENT_ID;
     if (!clientId) {
       // Simulate OAuth locally if credentials are not set
       return NextResponse.redirect(`${origin}/api/integrations/supabase/callback?code=simulated_code&state=${encodeURIComponent(nextUrl)}`);
