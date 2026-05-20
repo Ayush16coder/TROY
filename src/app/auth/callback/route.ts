@@ -31,8 +31,17 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.redirect(`${origin}/dashboard`);
+    } else {
+      // Pass the specific error message to the login page for debugging
+      return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error.message)}`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed`);
+  // If there's an error passed from Supabase in the URL, forward it
+  const error_description = searchParams.get("error_description");
+  if (error_description) {
+    return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error_description)}`);
+  }
+
+  return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed_no_code`);
 }

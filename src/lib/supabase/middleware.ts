@@ -42,7 +42,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && isAuthPage && url.pathname !== "/auth/update-password") {
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
