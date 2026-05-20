@@ -56,8 +56,10 @@ export async function GET(
           const tokenData = await tokenRes.json();
           if (tokenData.access_token) {
             accessToken = tokenData.access_token;
-            // Vercel doesn't always provide a refresh token depending on the configuration
             if (tokenData.refresh_token) refreshToken = tokenData.refresh_token;
+          } else {
+            console.error("Vercel token exchange error:", tokenData);
+            return NextResponse.redirect(`${origin}/dashboard/settings?error=vercel_token_failed`);
           }
         } else if (provider === "supabase") {
           const authHeader = Buffer.from(`${process.env.SUPABASE_MANAGEMENT_CLIENT_ID}:${process.env.SUPABASE_MANAGEMENT_CLIENT_SECRET}`).toString('base64');
@@ -77,10 +79,14 @@ export async function GET(
           if (tokenData.access_token) {
             accessToken = tokenData.access_token;
             if (tokenData.refresh_token) refreshToken = tokenData.refresh_token;
+          } else {
+            console.error("Supabase token exchange error:", tokenData);
+            return NextResponse.redirect(`${origin}/dashboard/settings?error=supabase_token_failed`);
           }
         }
       } catch (err) {
         console.error(`Failed to exchange token for ${provider}:`, err);
+        return NextResponse.redirect(`${origin}/dashboard/settings?error=token_exchange_failed`);
       }
     }
 
