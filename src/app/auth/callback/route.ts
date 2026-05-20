@@ -11,12 +11,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // If a specific next path is given (e.g. password reset), use it directly
-      if (next) {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
-
-      // Otherwise check if the user needs onboarding
+      // Check if user needs onboarding
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -28,6 +23,11 @@ export async function GET(request: NextRequest) {
         if (profile && !profile.onboarding_completed) {
           return NextResponse.redirect(`${origin}/onboarding`);
         }
+      }
+
+      // If a specific next path is given (e.g. dashboard or password reset), use it
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`);
       }
 
       return NextResponse.redirect(`${origin}/dashboard`);
