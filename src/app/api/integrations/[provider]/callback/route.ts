@@ -43,8 +43,7 @@ export async function GET(
     }
 
     // 3. Upsert into integrations table
-    // @ts-expect-error: supabase types need regeneration
-    const { data: integration, error: intError } = await supabase
+    const { data: integration, error: intError } = await (supabase as any)
       .from("integrations")
       .upsert({
         workspace_id: workspaceMember.workspace_id,
@@ -58,8 +57,7 @@ export async function GET(
 
     // 4. Store tokens
     if (integration && !intError) {
-      // @ts-expect-error: supabase types need regeneration
-      await supabase
+      await (supabase as any)
         .from("integration_tokens")
         .upsert({
           integration_id: integration.id,
