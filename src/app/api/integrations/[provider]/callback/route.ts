@@ -36,7 +36,11 @@ export async function GET(
     let accessToken = "simulated_access_token";
     let refreshToken = "simulated_refresh_token";
 
-    if (process.env[`${provider.toUpperCase()}_CLIENT_SECRET`] && code !== "simulated_code") {
+    const hasSecret = provider === "supabase" 
+      ? !!process.env.SUPABASE_MANAGEMENT_CLIENT_SECRET 
+      : !!process.env[`${provider.toUpperCase()}_CLIENT_SECRET`];
+
+    if (hasSecret && code !== "simulated_code") {
       try {
         if (provider === "vercel") {
           const tokenRes = await fetch("https://api.vercel.com/v2/oauth/access_token", {
