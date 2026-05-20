@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Suspense, useEffect } from "react";
 
 /* ── Provider logos ── */
 function VercelLogo({ size = 20 }: { size?: number }) {
@@ -54,6 +55,14 @@ const STEPS = [
 ];
 
 export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>}>
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+
+function OnboardingContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
@@ -64,7 +73,20 @@ export default function OnboardingPage() {
   const [connectedPlatforms, setConnectedPlatforms] = useState<Record<string, boolean>>({});
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    if (connected) {
+      setConnectedPlatforms((prev) => ({ ...prev, [connected]: true }));
+      toast.success(`${connected.charAt(0).toUpperCase() + connected.slice(1)} connected successfully!`);
+      
+      // Auto-advance step based on what was connected
+      if (connected === "github") setCurrentStep(2); // Move to Vercel
+      if (connected === "vercel") setCurrentStep(3); // Move to Supabase
+    }
+  }, [searchParams]);
 
   const step = STEPS[currentStep];
 
@@ -103,11 +125,32 @@ export default function OnboardingPage() {
     }
   };
 
-  /* ── Platform connection (simulated — opens OAuth in new tab) ── */
-  const handleConnect = (platform: string) => {
-    // Mark as connected (in a real app, you'd do OAuth here)
-    setConnectedPlatforms((prev) => ({ ...prev, [platform]: true }));
-    toast.success(`${platform} connected successfully!`);
+  /* ── Platform connection ── */
+  const handleConnect = async (platform: string) => {
+    if (platform === "github") {
+      setLoading(true);
+      const { error } = await supabase.auth.linkIdentity({
+        provider: "github",
+        options: {
+          redirectTo: `${window.location.origin}/onboarding?connected=github`,
+        }
+      });
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (platform === "vercel") {
+      window.location.href = `/api/integrations/vercel/connect?next=/onboarding?connected=vercel`;
+      return;
+    }
+
+    if (platform === "supabase") {
+      window.location.href = `/api/integrations/supabase/connect?next=/onboarding?connected=supabase`;
+      return;
+    }
   };
 
   /* ── Skip step ── */
@@ -310,7 +353,7 @@ export default function OnboardingPage() {
             {step.id === "github" && (
               <div className="bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/10 rounded-2xl p-8 shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center">
                     <GithubLogo size={22} />
                   </div>
                   <h2 className="text-2xl font-semibold tracking-tight">Connect GitHub</h2>
@@ -327,7 +370,7 @@ export default function OnboardingPage() {
                 ) : (
                   <button
                     onClick={() => handleConnect("github")}
-                    className="w-full h-12 flex items-center justify-center gap-3 bg-zinc-900 dark:bg-white/10 hover:bg-zinc-800 dark:hover:bg-white/15 text-white rounded-xl font-medium transition-colors mb-4"
+                    className="w-full h-12 flex items-center justify-center gap-3 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-xl font-medium transition-colors mb-4"
                   >
                     <GithubLogo size={20} />
                     Connect GitHub
