@@ -324,3 +324,66 @@ CREATE POLICY "Users can read their own AI sessions" ON ai_sessions FOR ALL USIN
 CREATE POLICY "Users can read their AI messages" ON ai_messages FOR ALL USING (
     EXISTS (SELECT 1 FROM ai_sessions WHERE id = ai_messages.session_id AND user_id = auth.uid())
 );
+
+-------------------------------------------------------------------------------
+-- AUTH TRIGGERS
+-------------------------------------------------------------------------------
+-- Create a new user profile and workspace upon signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+DECLARE
+  v_workspace_id UUID;
+  v_workspace_name TEXT;
+  v_slug TEXT;
+  v_base_slug TEXT;
+  v_counter INTEGER := 1;
+BEGIN
+  -- 1. Insert into public.users
+  INSERT INTO public.users (id, email, full_name, avatar_url)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''),
+    COALESCE(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', '')
+  );
+
+  -- 2. Create workspace if provided in metadata (from email signup)
+  v_workspace_name := new.raw_user_meta_data->>'workspace_name';
+  
+  IF v_workspace_name IS NULL OR v_workspace_name = '' THEN
+    -- If OAuth or missing, default to Personal Workspace
+    v_workspace_name := 'Personal Workspace';
+  END IF;
+  
+  -- Generate a base slug
+  v_base_slug := lower(regexp_replace(v_workspace_name, '[^a-zA-Z0-9]+', '-', 'g'));
+  v_base_slug := trim(both '-' from v_base_slug);
+  IF v_base_slug = '' THEN
+    v_base_slug := 'workspace';
+  END IF;
+  
+  v_slug := v_base_slug;
+  
+  -- Ensure slug is unique
+  WHILE EXISTS (SELECT 1 FROM public.workspaces WHERE slug = v_slug) LOOP
+    v_slug := v_base_slug || '-' || v_counter;
+    v_counter := v_counter + 1;
+  END LOOP;
+
+  -- Insert workspace
+  INSERT INTO public.workspaces (name, slug, owner_id, plan)
+  VALUES (v_workspace_name, v_slug, new.id, 'free')
+  RETURNING id INTO v_workspace_id;
+
+  -- 3. Add user as workspace member (owner)
+  INSERT INTO public.workspace_members (workspace_id, user_id, role, joined_at)
+  VALUES (v_workspace_id, new.id, 'owner', NOW());
+
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
