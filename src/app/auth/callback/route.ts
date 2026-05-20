@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
           .from("users")
           .select("onboarding_completed")
           .eq("id", user.id)
-          .single();
+          .single() as { data: { onboarding_completed: boolean } | null };
 
-        if (!profile?.onboarding_completed) {
+        if (profile && !profile.onboarding_completed) {
           return NextResponse.redirect(`${origin}/onboarding`);
         }
       }
