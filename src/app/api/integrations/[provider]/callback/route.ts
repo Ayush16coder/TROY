@@ -37,9 +37,47 @@ export async function GET(
     let refreshToken = "simulated_refresh_token";
 
     if (process.env[`${provider.toUpperCase()}_CLIENT_SECRET`] && code !== "simulated_code") {
-      // In a production app, you would make a fetch() to the provider's token endpoint here
-      // For Vercel: POST https://api.vercel.com/v2/oauth/access_token
-      // For Supabase: POST https://api.supabase.com/v1/oauth/token
+      try {
+        if (provider === "vercel") {
+          const tokenRes = await fetch("https://api.vercel.com/v2/oauth/access_token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: process.env.VERCEL_CLIENT_ID!,
+              client_secret: process.env.VERCEL_CLIENT_SECRET!,
+              code: code,
+              redirect_uri: `${origin}/api/integrations/vercel/callback`,
+            }),
+          });
+          const tokenData = await tokenRes.json();
+          if (tokenData.access_token) {
+            accessToken = tokenData.access_token;
+            // Vercel doesn't always provide a refresh token depending on the configuration
+            if (tokenData.refresh_token) refreshToken = tokenData.refresh_token;
+          }
+        } else if (provider === "supabase") {
+          const authHeader = Buffer.from(`${process.env.SUPABASE_MANAGEMENT_CLIENT_ID}:${process.env.SUPABASE_MANAGEMENT_CLIENT_SECRET}`).toString('base64');
+          const tokenRes = await fetch("https://api.supabase.com/v1/oauth/token", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/x-www-form-urlencoded",
+              "Authorization": `Basic ${authHeader}`
+            },
+            body: new URLSearchParams({
+              grant_type: "authorization_code",
+              code: code,
+              redirect_uri: `${origin}/api/integrations/supabase/callback`,
+            }),
+          });
+          const tokenData = await tokenRes.json();
+          if (tokenData.access_token) {
+            accessToken = tokenData.access_token;
+            if (tokenData.refresh_token) refreshToken = tokenData.refresh_token;
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to exchange token for ${provider}:`, err);
+      }
     }
 
     // 3. Upsert into integrations table
