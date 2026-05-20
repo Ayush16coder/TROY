@@ -44,19 +44,19 @@ export default async function SettingsPage() {
   if (!user) redirect("/auth/login");
 
   // Get workspace
-  const { data: workspaceMember } = await supabase
+  const { data: workspaceMember } = await (supabase as any)
     .from("workspace_members")
     .select("workspace_id")
     .eq("user_id", user.id)
     .limit(1)
-    .single();
+    .single() as { data: { workspace_id: string } | null };
 
   const workspaceId = workspaceMember?.workspace_id;
 
   // Get integrations
   let integrations: any[] = [];
   if (workspaceId) {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("integrations")
       .select("*")
       .eq("workspace_id", workspaceId);
