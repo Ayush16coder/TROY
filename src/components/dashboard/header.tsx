@@ -5,6 +5,7 @@ import type { User } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
 
 interface Props {
   user: User | null;
@@ -56,9 +57,9 @@ export function DashboardHeader({ user }: Props) {
         </button>
 
         {/* New project */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 hover:scale-105 transition-all shadow-sm">
+        <Link href="/dashboard/new" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 hover:scale-105 transition-all shadow-sm">
           <Plus className="w-3.5 h-3.5" /> New
-        </button>
+        </Link>
       </div>
     </header>
   );
