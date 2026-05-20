@@ -29,8 +29,9 @@ export function DashboardHeader({ user }: Props) {
           placeholder="Search..."
           className="w-full pl-9 pr-12 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring/50 focus:ring-1 focus:ring-ring/20 transition-all"
         />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 font-mono">
-          ⌘K
+        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground shadow-sm">
+          <span className="text-xs leading-none">⌘</span>
+          <span className="leading-none">K</span>
         </kbd>
       </div>
 
