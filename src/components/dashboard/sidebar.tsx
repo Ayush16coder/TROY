@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, GitBranch, Rocket, Terminal,
@@ -37,6 +38,14 @@ interface Props {
 
 export function DashboardSidebar({ user }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  };
 
   return (
     <aside className="w-56 flex-shrink-0 flex flex-col border-r border-border bg-background">
@@ -112,7 +121,7 @@ export function DashboardSidebar({ user }: Props) {
 
       {/* User footer */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer group">
+        <button onClick={handleLogout} className="w-full text-left flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer group">
           <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center text-foreground text-xs font-semibold flex-shrink-0">
             {user?.full_name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
           </div>
@@ -123,7 +132,7 @@ export function DashboardSidebar({ user }: Props) {
             <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
           </div>
           <LogOut className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-        </div>
+        </button>
       </div>
     </aside>
   );
