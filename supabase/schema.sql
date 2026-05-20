@@ -24,6 +24,8 @@ CREATE TABLE users (
     full_name TEXT,
     avatar_url TEXT,
     github_username TEXT,
+    phone_number TEXT,
+    onboarding_completed BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -285,6 +287,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 -- Users can read their own data
 CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid() = id);
 
+-- Users can update their own data
+CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid() = id);
+
 -- Users can read workspaces they are members of
 CREATE POLICY "Users can read their workspaces" ON workspaces FOR SELECT USING (
     EXISTS (SELECT 1 FROM workspace_members WHERE workspace_id = workspaces.id AND user_id = auth.uid())
@@ -339,12 +344,13 @@ DECLARE
   v_counter INTEGER := 1;
 BEGIN
   -- 1. Insert into public.users
-  INSERT INTO public.users (id, email, full_name, avatar_url)
+  INSERT INTO public.users (id, email, full_name, avatar_url, onboarding_completed)
   VALUES (
     new.id,
     new.email,
     COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''),
-    COALESCE(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', '')
+    COALESCE(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', ''),
+    false
   );
 
   -- 2. Create workspace if provided in metadata (from email signup)
