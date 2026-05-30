@@ -10,7 +10,8 @@ const OAUTH_PROVIDERS = ["vercel", "supabase", "github", "railway"] as const;
 const TOKEN_PROVIDERS = ["docker", "aws"] as const;
 
 function appOrigin(request: NextRequest) {
-  return process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+  const url = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+  return url.replace(/\/$/, "");
 }
 
 export async function GET(
@@ -37,7 +38,7 @@ export async function GET(
     );
   }
 
-  const state = encodeURIComponent(nextUrl);
+  const state = nextUrl;
 
   if (provider === "vercel") {
     const clientId = process.env.VERCEL_CLIENT_ID;
@@ -48,8 +49,11 @@ export async function GET(
       );
     }
     const redirectUri = `${origin}/api/integrations/vercel/callback`;
-    const authUrl = `https://vercel.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
-    return NextResponse.redirect(authUrl);
+    const authUrl = new URL("https://vercel.com/oauth/authorize");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("state", state);
+    return NextResponse.redirect(authUrl.toString());
   }
 
   if (provider === "supabase") {
@@ -61,8 +65,12 @@ export async function GET(
       );
     }
     const redirectUri = `${origin}/api/integrations/supabase/callback`;
-    const authUrl = `https://api.supabase.com/v1/oauth/authorize?client_id=${clientId}&response_type=code&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    return NextResponse.redirect(authUrl);
+    const authUrl = new URL("https://api.supabase.com/v1/oauth/authorize");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("state", state);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    return NextResponse.redirect(authUrl.toString());
   }
 
   if (provider === "github") {
@@ -73,9 +81,13 @@ export async function GET(
       );
     }
     const redirectUri = `${origin}/api/integrations/github/callback`;
-    const scopes = encodeURIComponent("repo read:user user:email admin:repo_hook");
-    const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${scopes}`;
-    return NextResponse.redirect(authUrl);
+    const scopes = "repo read:user user:email admin:repo_hook";
+    const authUrl = new URL("https://github.com/login/oauth/authorize");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("state", state);
+    authUrl.searchParams.set("scope", scopes);
+    return NextResponse.redirect(authUrl.toString());
   }
 
   if (provider === "railway") {
@@ -86,8 +98,12 @@ export async function GET(
       );
     }
     const redirectUri = `${origin}/api/integrations/railway/callback`;
-    const authUrl = `https://railway.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&response_type=code`;
-    return NextResponse.redirect(authUrl);
+    const authUrl = new URL("https://railway.com/oauth/authorize");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("state", state);
+    authUrl.searchParams.set("response_type", "code");
+    return NextResponse.redirect(authUrl.toString());
   }
 
   return NextResponse.json({ error: "Unsupported provider" }, { status: 400 });
