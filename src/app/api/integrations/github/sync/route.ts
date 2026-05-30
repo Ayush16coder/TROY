@@ -26,20 +26,20 @@ export async function POST() {
   }
 
 
-  const workspace = await requireWorkspace(user);
-  const providerToken = await getIntegrationToken(workspace.workspaceId, "github");
-
-  if (!providerToken) {
-    return NextResponse.json(
-      {
-        error: "no_provider_token",
-        message: "Please connect GitHub in Settings to allow repository syncing.",
-      },
-      { status: 400 }
-    );
-  }
-
   try {
+    const workspace = await requireWorkspace(user);
+    const providerToken = await getIntegrationToken(workspace.workspaceId, "github");
+
+    if (!providerToken) {
+      return NextResponse.json(
+        {
+          error: "no_provider_token",
+          message: "Please connect GitHub in Settings to allow repository syncing.",
+        },
+        { status: 400 }
+      );
+    }
+
     const admin = createServiceClient();
 
     const ghRes = await fetch("https://api.github.com/user/repos?per_page=100&sort=updated", {
@@ -53,12 +53,11 @@ export async function POST() {
     if (!ghRes.ok) {
       const err = await ghRes.text();
       console.error("GitHub API error:", err);
-      return NextResponse.json({ error: "github_api_failed" }, { status: 502 });
+      return NextResponse.json({ error: "github_api_failed", details: err }, { status: 502 });
     }
 
     const repos: GithubRepo[] = await ghRes.json();
 
-    // Fetch authenticated user info from GitHub
     const ghUserRes = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `Bearer ${providerToken}`,
@@ -106,8 +105,8 @@ export async function POST() {
     });
 
     return NextResponse.json({ success: true, count: repos.length });
-  } catch (err) {
+  } catch (err: any) {
     console.error("GitHub sync error:", err);
-    return NextResponse.json({ error: "sync_failed" }, { status: 500 });
+    return NextResponse.json({ error: "sync_failed", message: err.message }, { status: 500 });
   }
 }
