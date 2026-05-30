@@ -44,25 +44,31 @@ export async function GET(
     const clientId = process.env.VERCEL_CLIENT_ID;
     const clientSecret = process.env.VERCEL_CLIENT_SECRET;
     if (!clientId || !clientSecret) {
-      return NextResponse.redirect(
-        `${origin}${nextUrl}?error=vercel_not_configured`
-      );
+      return new NextResponse(null, {
+        status: 307,
+        headers: { Location: `${origin}${nextUrl}?error=vercel_not_configured` },
+      });
     }
     const redirectUri = `${origin}/api/integrations/vercel/callback`;
     const authUrl = new URL("https://vercel.com/oauth/authorize");
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
-    return NextResponse.redirect(authUrl.toString());
+    
+    return new NextResponse(null, {
+      status: 307,
+      headers: { Location: authUrl.toString() },
+    });
   }
 
   if (provider === "supabase") {
     const clientId = process.env.SUPABASE_MANAGEMENT_CLIENT_ID;
     const clientSecret = process.env.SUPABASE_MANAGEMENT_CLIENT_SECRET;
     if (!clientId || !clientSecret) {
-      return NextResponse.redirect(
-        `${origin}${nextUrl}?error=supabase_not_configured`
-      );
+      return new NextResponse(null, {
+        status: 307,
+        headers: { Location: `${origin}${nextUrl}?error=supabase_not_configured` },
+      });
     }
     const redirectUri = `${origin}/api/integrations/supabase/callback`;
     const authUrl = new URL("https://api.supabase.com/v1/oauth/authorize");
@@ -70,15 +76,20 @@ export async function GET(
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("redirect_uri", redirectUri);
-    return NextResponse.redirect(authUrl.toString());
+    
+    return new NextResponse(null, {
+      status: 307,
+      headers: { Location: authUrl.toString() },
+    });
   }
 
   if (provider === "github") {
     const clientId = process.env.GITHUB_CLIENT_ID;
     if (!clientId) {
-      return NextResponse.redirect(
-        `${origin}${nextUrl}?error=github_not_configured`
-      );
+      return new NextResponse(null, {
+        status: 307,
+        headers: { Location: `${origin}${nextUrl}?error=github_not_configured` },
+      });
     }
     const redirectUri = `${origin}/api/integrations/github/callback`;
     const scopes = "repo read:user user:email admin:repo_hook";
@@ -87,15 +98,20 @@ export async function GET(
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("scope", scopes);
-    return NextResponse.redirect(authUrl.toString());
+    
+    return new NextResponse(null, {
+      status: 307,
+      headers: { Location: authUrl.toString() },
+    });
   }
 
   if (provider === "railway") {
     const clientId = process.env.RAILWAY_CLIENT_ID;
     if (!clientId) {
-      return NextResponse.redirect(
-        `${origin}${nextUrl}?error=railway_not_configured`
-      );
+      return new NextResponse(null, {
+        status: 307,
+        headers: { Location: `${origin}${nextUrl}?error=railway_not_configured` },
+      });
     }
     const redirectUri = `${origin}/api/integrations/railway/callback`;
     const authUrl = new URL("https://railway.com/oauth/authorize");
@@ -103,7 +119,11 @@ export async function GET(
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("response_type", "code");
-    return NextResponse.redirect(authUrl.toString());
+    
+    return new NextResponse(null, {
+      status: 307,
+      headers: { Location: authUrl.toString() },
+    });
   }
 
   return NextResponse.json({ error: "Unsupported provider" }, { status: 400 });
