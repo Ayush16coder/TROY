@@ -6,8 +6,8 @@ import { requireWorkspace } from "@/lib/workspace";
 import { upsertIntegration } from "@/lib/integrations/store";
 import { createServiceClient } from "@/lib/supabase/service";
 
-const OAUTH_PROVIDERS = ["vercel", "supabase", "github", "railway"] as const;
-const TOKEN_PROVIDERS = ["docker", "aws"] as const;
+const OAUTH_PROVIDERS = ["supabase", "github", "railway"] as const;
+const TOKEN_PROVIDERS = ["docker", "aws", "vercel"] as const;
 
 function appOrigin(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;

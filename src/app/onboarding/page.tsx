@@ -142,7 +142,25 @@ function OnboardingContent() {
     }
 
     if (platform === "vercel") {
-      window.location.href = `/api/integrations/vercel/connect?next=/onboarding?connected=vercel`;
+      const token = window.prompt("Enter your Vercel Personal Access Token (generate at vercel.com/account/tokens):") || "";
+      if (!token) return;
+      
+      setLoading(true);
+      try {
+        const res = await fetch("/api/integrations/vercel/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        if (!res.ok) throw new Error("Connect failed");
+        
+        toast.success("Vercel connected successfully!");
+        setConnectedPlatforms(prev => ({ ...prev, vercel: true }));
+      } catch (err) {
+        toast.error("Failed to connect Vercel");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 

@@ -77,7 +77,7 @@ const PROVIDERS = [
     description: "Deploy Next.js apps globally. Stream build logs and preview URLs.",
     icon: VercelLogo,
     bg: "bg-black dark:bg-white text-white dark:text-zinc-900",
-    oauth: true as const,
+    oauth: false as const,
   },
   {
     id: "supabase",
@@ -111,7 +111,7 @@ const PROVIDERS = [
     bg: "bg-orange-500 text-white",
     oauth: false as const,
   },
-] as const;
+];
 
 interface Props {
   integrations: IntegrationRow[];
@@ -137,7 +137,9 @@ export function IntegrationsGrid({ integrations }: Props) {
     
     // Token-based providers
     let token = "";
-    if (id === "docker") {
+    if (id === "vercel") {
+        token = window.prompt("Enter your Vercel Personal Access Token (generate at vercel.com/account/tokens):") || "";
+    } else if (id === "docker") {
         token = window.prompt("Enter your Docker Hub Access Token:") || "";
     } else if (id === "aws") {
         token = window.prompt('Enter AWS Credentials as JSON: {"accessKeyId":"...","secretAccessKey":"...","region":"us-east-1"}') || "";

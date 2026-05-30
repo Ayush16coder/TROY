@@ -119,7 +119,7 @@ export default async function SettingsPage() {
                 Connected
               </div>
             ) : (
-              <a href={`/api/integrations/vercel/connect?next=/dashboard/settings`} className="h-9 px-4 flex items-center justify-center bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-lg text-sm font-medium transition-colors">
+              <a href={`/dashboard/integrations`} className="h-9 px-4 flex items-center justify-center bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-lg text-sm font-medium transition-colors">
                 Connect Vercel
               </a>
             )}
