@@ -4,53 +4,53 @@ import * as React from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export function ThemeToggle() {
+const CYCLE = ["light", "dark", "system"] as const;
+
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  React.useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="w-8 h-8 rounded-lg bg-secondary/50 animate-pulse" />;
+    return <div className={cn("w-8 h-8 rounded-lg bg-secondary/50 animate-pulse", className)} />;
   }
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  const cycleTheme = () => {
+    document.documentElement.classList.add("transition-theme");
+    const idx = CYCLE.indexOf((theme as typeof CYCLE[number]) ?? "system");
+    setTheme(CYCLE[(idx + 1) % CYCLE.length]);
+    setTimeout(() => document.documentElement.classList.remove("transition-theme"), 300);
   };
+
+  const Icon =
+    theme === "system" ? Monitor : resolvedTheme === "dark" ? Moon : Sun;
 
   return (
     <button
-      onClick={toggleTheme}
-      className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-transparent hover:bg-secondary border border-transparent hover:border-border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 overflow-hidden group"
-      aria-label="Toggle theme"
+      onClick={cycleTheme}
+      className={cn(
+        "relative w-8 h-8 flex items-center justify-center rounded-lg",
+        "hover:bg-secondary border border-transparent hover:border-border transition-colors",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 overflow-hidden",
+        className
+      )}
+      aria-label={`Theme: ${theme}. Click to cycle.`}
+      title={`Theme: ${theme}`}
     >
       <AnimatePresence mode="wait" initial={false}>
-        {resolvedTheme === "dark" ? (
-          <motion.div
-            key="dark"
-            initial={{ y: 20, opacity: 0, rotate: -45 }}
-            animate={{ y: 0, opacity: 1, rotate: 0 }}
-            exit={{ y: -20, opacity: 0, rotate: 45 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <Moon className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="light"
-            initial={{ y: 20, opacity: 0, rotate: -45 }}
-            animate={{ y: 0, opacity: 1, rotate: 0 }}
-            exit={{ y: -20, opacity: 0, rotate: 45 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <Sun className="w-4 h-4 text-zinc-500 group-hover:text-black transition-colors" />
-          </motion.div>
-        )}
+        <motion.span
+          key={theme ?? "light"}
+          initial={{ y: 12, opacity: 0, rotate: -20 }}
+          animate={{ y: 0, opacity: 1, rotate: 0 }}
+          exit={{ y: -12, opacity: 0, rotate: 20 }}
+          transition={{ duration: 0.18 }}
+          className="flex items-center justify-center"
+        >
+          <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+        </motion.span>
       </AnimatePresence>
     </button>
   );

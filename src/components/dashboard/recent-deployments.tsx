@@ -28,19 +28,19 @@ export function RecentDeployments({ deployments }: Props) {
   const data = deployments.length > 0 ? deployments : MOCK;
 
   return (
-    <div className="glass rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e2d40]">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <Rocket className="w-4 h-4 text-blue-400" />
-          <h2 className="font-semibold text-white text-sm">Recent Deployments</h2>
+          <Rocket className="w-4 h-4 text-primary" />
+          <h2 className="font-semibold text-foreground text-sm">Recent Deployments</h2>
         </div>
-        <Link href="/dashboard/deployments" className="text-xs text-zinc-500 hover:text-blue-400 transition-colors">
+        <Link href="/dashboard/deployments" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
           View all →
         </Link>
       </div>
-      <div className="divide-y divide-[#1e2d40]">
+      <div className="divide-y divide-border">
         {data.map((d) => (
-          <div key={d.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[#0d1117]/50 transition-colors">
+          <div key={d.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-secondary/40 transition-colors">
             <div className="flex-shrink-0">
               <span className={`text-xs font-mono font-bold capitalize ${PROVIDER_COLORS[d.provider] ?? "text-zinc-400"}`}>
                 {d.provider[0].toUpperCase()}
@@ -48,7 +48,7 @@ export function RecentDeployments({ deployments }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white truncate">
+                <span className="text-sm font-medium text-foreground truncate">
                   {(d as any).projects?.name ?? d.project_id}
                 </span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${getStatusBadgeClass(d.status)}`}>
@@ -57,16 +57,16 @@ export function RecentDeployments({ deployments }: Props) {
               </div>
               {d.commit_sha && (
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <GitCommit className="w-3 h-3 text-zinc-600" />
-                  <span className="text-xs text-zinc-500 font-mono">{d.commit_sha.slice(0, 7)}</span>
-                  <span className="text-xs text-zinc-600 truncate max-w-[180px]">{d.commit_message}</span>
+                  <GitCommit className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground font-mono">{d.commit_sha.slice(0, 7)}</span>
+                  <span className="text-xs text-muted-foreground/80 truncate max-w-[180px]">{d.commit_message}</span>
                 </div>
               )}
             </div>
             <div className="flex-shrink-0 text-right">
-              <p className="text-xs text-zinc-500">{formatRelativeTime(d.created_at)}</p>
+              <p className="text-xs text-muted-foreground">{formatRelativeTime(d.created_at)}</p>
               {d.url && (
-                <a href={d.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 transition-colors mt-0.5">
+                <a href={d.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary hover:opacity-80 transition-colors mt-0.5">
                   <ExternalLink className="w-3 h-3" /> Visit
                 </a>
               )}

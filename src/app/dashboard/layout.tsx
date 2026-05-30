@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
+import { CommandPalette } from "@/components/dashboard/command-palette";
 
 export default async function DashboardLayout({
   children,
@@ -23,10 +24,11 @@ export default async function DashboardLayout({
       <DashboardSidebar user={profile} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <DashboardHeader user={profile} />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-5 md:p-6">
           {children}
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }

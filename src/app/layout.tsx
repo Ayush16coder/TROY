@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Inter, Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 import { ThemeProvider } from "@/components/theme-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: { default: "TROY", template: "%s | TROY" },
   description:
-    "The unified AI-powered developer operating system. Connect GitHub, Vercel, Supabase, and your entire stack into one real-time synchronized platform.",
-  keywords: ["developer platform", "CI/CD", "deployment", "GitHub", "Vercel", "AI", "DevOps"],
+    "The Operating System For Modern Development. Connect GitHub, Vercel, Supabase, AWS, and your entire stack into one synchronized control center.",
+  keywords: ["developer platform", "CI/CD", "deployment", "infrastructure", "DevOps", "GitHub", "Vercel"],
   authors: [{ name: "TROY" }],
   openGraph: {
-    title: "TROY",
-    description: "The unified AI-powered developer operating system.",
+    title: "TROY — The Operating System For Modern Development",
+    description: "Unified infrastructure control center for elite engineering teams.",
     type: "website",
     siteName: "TROY",
   },
@@ -31,21 +32,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={inter.variable}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              className: "bg-background text-foreground border-border",
-            }}
-          />
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, inter.variable, jetbrains.variable)}>
+      <body className="antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem enableColorScheme>
+          <QueryProvider>
+            {children}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                className: "bg-background text-foreground border-border",
+              }}
+            />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -362,16 +362,25 @@ export default function LandingPage() {
              <div className="w-5 h-5 rounded flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-primary" fill="currentColor" />
              </div>
-             <span className="text-sm font-medium tracking-tight">TROY Agent Platform</span>
+             <span className="text-sm font-medium tracking-tight">Infrastructure Control Center</span>
           </motion.div>
 
           {/* Heading */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl md:text-6xl lg:text-[76px] font-medium tracking-tight leading-[1.05] mb-10 text-foreground max-w-4xl"
+            className="text-5xl md:text-6xl lg:text-[72px] font-medium tracking-tight leading-[1.05] mb-6 text-foreground max-w-4xl"
           >
-            Experience liftoff with the next-gen agent platform
+            The Operating System For Modern Development
           </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed"
+          >
+            Connect GitHub, Vercel, Supabase, Railway, and your entire stack. One workspace. Real-time sync. Enterprise-grade control.
+          </motion.p>
 
           {/* Buttons */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -380,12 +389,12 @@ export default function LandingPage() {
           >
             <Button size="lg" asChild className="h-14 px-8 text-base rounded-full shadow-xl hover:scale-[1.02] transition-transform w-full sm:w-auto">
               <Link href="/auth/register">
-                Download for Windows
+                Get Started <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="h-14 px-8 text-base rounded-full shadow-sm bg-secondary/50 backdrop-blur-sm border-border hover:bg-secondary w-full sm:w-auto">
-              <Link href="#platforms">
-                Explore use cases
+              <Link href="/auth/login">
+                Sign In
               </Link>
             </Button>
           </motion.div>

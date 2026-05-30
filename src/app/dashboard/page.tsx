@@ -4,6 +4,10 @@ import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentDeployments } from "@/components/dashboard/recent-deployments";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { ProviderHealth } from "@/components/dashboard/provider-health";
+import { AIRecommendations } from "@/components/dashboard/ai-recommendations";
+import { DeploymentTimeline } from "@/components/dashboard/deployment-timeline";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 export const metadata = { title: "Overview" };
 
@@ -26,23 +30,24 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Overview</h1>
-        <p className="text-sm text-zinc-500 mt-0.5">
-          Your workspace at a glance — real-time synchronized
-        </p>
-      </div>
+    <div className="max-w-[1400px] mx-auto space-y-6">
+      <PageHeader
+        title="Overview"
+        description="Your infrastructure control center — synchronized across all connected providers."
+      />
 
       <OverviewStats />
       <QuickActions />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-5">
           <RecentDeployments deployments={deploymentsRes.data ?? []} />
+          <DeploymentTimeline />
         </div>
-        <div>
+        <div className="space-y-5">
           <ActivityFeed activities={activityRes.data ?? []} />
+          <ProviderHealth />
+          <AIRecommendations />
         </div>
       </div>
     </div>
