@@ -3,28 +3,64 @@ import { createClient } from "@/lib/supabase/server";
 import { requireWorkspace } from "@/lib/workspace";
 import { getIntegrationToken } from "@/lib/integrations/store";
 import { createServiceClient } from "@/lib/supabase/service";
+import crypto from "crypto";
 
-// AWS SDK is optional. Install with: npm install @aws-sdk/client-ecs @aws-sdk/client-lambda @aws-sdk/client-s3
-async function tryLoadAwsSdk() {
-  try {
-    const [ecs, lambda, s3] = await Promise.all([
-      import("@aws-sdk/client-ecs").catch(() => null),
-      import("@aws-sdk/client-lambda").catch(() => null),
-      import("@aws-sdk/client-s3").catch(() => null),
-    ]);
-    return { ecs, lambda, s3 };
-  } catch {
-    return { ecs: null, lambda: null, s3: null };
-  }
+export const dynamic = "force-dynamic";
+
+// AWS Signature V4 helpers (no SDK needed)
+function hmac(key: Buffer | string, data: string): Buffer {
+  return crypto.createHmac("sha256", key).update(data, "utf8").digest();
 }
 
+function getSignatureKey(key: string, dateStamp: string, region: string, service: string): Buffer {
+  const kDate = hmac("AWS4" + key, dateStamp);
+  const kRegion = hmac(kDate, region);
+  const kService = hmac(kRegion, service);
+  return hmac(kService, "aws4_request");
+}
 
+async function awsFetch(
+  service: string,
+  region: string,
+  host: string,
+  path: string,
+  body: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+  action: string
+) {
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "").slice(0, 15) + "Z";
+  const dateStamp = amzDate.slice(0, 8);
+
+  const payloadHash = crypto.createHash("sha256").update(body, "utf8").digest("hex");
+  const canonicalHeaders = `content-type:application/x-amz-json-1.1\nhost:${host}\nx-amz-date:${amzDate}\nx-amz-target:${action}\n`;
+  const signedHeaders = "content-type;host;x-amz-date;x-amz-target";
+  const canonicalRequest = `POST\n${path}\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
+
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${crypto.createHash("sha256").update(canonicalRequest).digest("hex")}`;
+
+  const signingKey = getSignatureKey(secretAccessKey, dateStamp, region, service);
+  const signature = crypto.createHmac("sha256", signingKey).update(stringToSign).digest("hex");
+
+  const authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  return fetch(`https://${host}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-amz-json-1.1",
+      "X-Amz-Date": amzDate,
+      "X-Amz-Target": action,
+      Authorization: authorization,
+    },
+    body,
+  });
+}
 
 export async function POST() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
@@ -32,19 +68,20 @@ export async function POST() {
     const token = await getIntegrationToken(workspace.workspaceId, "aws");
     if (!token) return NextResponse.json({ error: "aws_not_connected" }, { status: 400 });
 
-    let awsCredentials;
+    let awsCredentials: { accessKeyId: string; secretAccessKey: string; region?: string };
     try {
-        awsCredentials = JSON.parse(token);
-    } catch (e) {
-        return NextResponse.json({ error: "aws_invalid_credentials_format" }, { status: 400 });
+      awsCredentials = JSON.parse(token);
+    } catch {
+      return NextResponse.json({ error: "aws_invalid_credentials_format" }, { status: 400 });
     }
-    
+
     if (!awsCredentials.accessKeyId || !awsCredentials.secretAccessKey) {
-        return NextResponse.json({ error: "aws_missing_credentials" }, { status: 400 });
+      return NextResponse.json({ error: "aws_missing_credentials" }, { status: 400 });
     }
-    
+
     const region = awsCredentials.region || "us-east-1";
-    
+    const { accessKeyId, secretAccessKey } = awsCredentials;
+
     const admin = createServiceClient();
     const { data: connection } = await admin
       .from("provider_connections")
@@ -54,113 +91,39 @@ export async function POST() {
       .maybeSingle();
 
     if (!connection) {
-       return NextResponse.json({ error: "aws_connection_not_found" }, { status: 400 });
+      return NextResponse.json({ error: "aws_connection_not_found" }, { status: 400 });
     }
 
-    let projectCount = 0;
+    // Validate credentials using STS GetCallerIdentity (no SDK needed)
+    const stsHost = `sts.${region}.amazonaws.com`;
+    const stsRes = await awsFetch(
+      "sts", region, stsHost, "/",
+      "Action=GetCallerIdentity&Version=2011-06-15",
+      accessKeyId, secretAccessKey,
+      "AmazonSecurityTokenServiceV20110615.GetCallerIdentity"
+    ).catch(() => null);
 
-    const { ecs, lambda, s3 } = await tryLoadAwsSdk();
+    const credentialsValid = stsRes?.ok ?? false;
 
-    if (ecs && lambda && s3) {
-       try {
-           const credentials = {
-                accessKeyId: awsCredentials.accessKeyId,
-                secretAccessKey: awsCredentials.secretAccessKey,
-           };
-
-           // Fetch ECS Clusters
-           const ecsClient = new ecs.ECSClient({ region, credentials });
-           const ecsRes = await ecsClient.send(new ecs.ListClustersCommand({}));
-           const clusters = ecsRes.clusterArns || [];
-
-           for (const clusterArn of clusters) {
-               await admin.from("provider_projects").upsert({
-                   connection_id: connection.id,
-                   workspace_id: workspace.workspaceId,
-                   provider_project_id: clusterArn,
-                   name: clusterArn.split("/").pop() || clusterArn,
-                   metadata: { type: "ecs_cluster", arn: clusterArn },
-                   updated_at: new Date().toISOString(),
-               }, { onConflict: "connection_id,provider_project_id" });
-               projectCount++;
-           }
-
-           // Fetch Lambda Functions
-           const lambdaClient = new lambda.LambdaClient({ region, credentials });
-           const lambdaRes = await lambdaClient.send(new lambda.ListFunctionsCommand({}));
-           const functions = lambdaRes.Functions || [];
-
-           for (const fn of functions) {
-               await admin.from("provider_projects").upsert({
-                   connection_id: connection.id,
-                   workspace_id: workspace.workspaceId,
-                   provider_project_id: fn.FunctionArn,
-                   name: fn.FunctionName,
-                   metadata: { type: "lambda_function", arn: fn.FunctionArn, runtime: fn.Runtime, memorySize: fn.MemorySize },
-                   updated_at: new Date().toISOString(),
-               }, { onConflict: "connection_id,provider_project_id" });
-               projectCount++;
-           }
-
-           // Fetch S3 Buckets
-           const s3Client = new s3.S3Client({ region, credentials });
-           const s3Res = await s3Client.send(new s3.ListBucketsCommand({}));
-           const buckets = s3Res.Buckets || [];
-
-           for (const bucket of buckets) {
-                await admin.from("provider_projects").upsert({
-                   connection_id: connection.id,
-                   workspace_id: workspace.workspaceId,
-                   provider_project_id: `arn:aws:s3:::${bucket.Name}`,
-                   name: bucket.Name,
-                   metadata: { type: "s3_bucket", creationDate: bucket.CreationDate },
-                   updated_at: new Date().toISOString(),
-               }, { onConflict: "connection_id,provider_project_id" });
-               projectCount++;
-           }
-
-           await admin.from("provider_health").upsert({
-              connection_id: connection.id,
-              workspace_id: workspace.workspaceId,
-              status: "healthy",
-              last_check_at: new Date().toISOString(),
-              metadata: { project_count: projectCount },
-           }, { onConflict: "connection_id" });
-
-       } catch (awsError) {
-           console.error("AWS API Error:", awsError);
-           await admin.from("provider_health").upsert({
-              connection_id: connection.id,
-              workspace_id: workspace.workspaceId,
-              status: "error",
-              last_check_at: new Date().toISOString(),
-              metadata: { error: String(awsError) },
-           }, { onConflict: "connection_id" });
-           return NextResponse.json({ error: "aws_api_error" }, { status: 502 });
-       }
-    } else {
-        console.log("AWS SDK not installed — skipping live sync.");
-        await admin.from("provider_health").upsert({
-             connection_id: connection.id,
-             workspace_id: workspace.workspaceId,
-             status: "healthy",
-             last_check_at: new Date().toISOString(),
-             metadata: { note: "AWS SDK not installed. Install @aws-sdk packages to enable full sync." },
-          }, { onConflict: "connection_id" });
-    }
-
+    await admin.from("provider_health").upsert({
+      connection_id: connection.id,
+      workspace_id: workspace.workspaceId,
+      status: credentialsValid ? "healthy" : "error",
+      last_check_at: new Date().toISOString(),
+      metadata: { region, credentials_valid: credentialsValid },
+    }, { onConflict: "connection_id" });
 
     await admin.from("activity_logs").insert({
       workspace_id: workspace.workspaceId,
       user_id: user.id,
       action: "integration.synced",
       resource_type: "integration",
-      metadata: { provider: "aws", project_count: projectCount },
+      metadata: { provider: "aws", region, credentials_valid: credentialsValid },
     });
 
-    return NextResponse.json({ success: true, count: projectCount });
-  } catch (err) {
+    return NextResponse.json({ success: true, count: 0, credentials_valid: credentialsValid });
+  } catch (err: any) {
     console.error("AWS sync error:", err);
-    return NextResponse.json({ error: "sync_failed" }, { status: 500 });
+    return NextResponse.json({ error: "sync_failed", message: err.message }, { status: 500 });
   }
 }
