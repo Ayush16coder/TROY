@@ -12,14 +12,6 @@ const ICON_MAP: Record<string, React.ElementType> = {
   settings: Settings,
 };
 
-const MOCK_ACTIVITIES: ActivityLog[] = [
-  { id: "1", workspace_id: "w1", user_id: "u1", action: "deployment.created", resource_type: "deployment", resource_id: "d1", metadata: { project: "my-app", provider: "vercel" }, created_at: new Date(Date.now() - 120000).toISOString() },
-  { id: "2", workspace_id: "w1", user_id: "u1", action: "repository.synced", resource_type: "repository", resource_id: "r1", metadata: { repo: "org/my-app" }, created_at: new Date(Date.now() - 300000).toISOString() },
-  { id: "3", workspace_id: "w1", user_id: "u2", action: "integration.connected", resource_type: "integration", resource_id: "i1", metadata: { provider: "Railway" }, created_at: new Date(Date.now() - 900000).toISOString() },
-  { id: "4", workspace_id: "w1", user_id: "u1", action: "team.member_invited", resource_type: "team", resource_id: null, metadata: { email: "dev@acme.com" }, created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: "5", workspace_id: "w1", user_id: "u1", action: "deployment.rolled_back", resource_type: "deployment", resource_id: "d2", metadata: { project: "api-server" }, created_at: new Date(Date.now() - 7200000).toISOString() },
-];
-
 function formatAction(action: string, meta: Record<string, unknown>): string {
   const parts = action.split(".");
   const verb = parts[1]?.replace(/_/g, " ") ?? action;
@@ -33,7 +25,7 @@ function formatAction(action: string, meta: Record<string, unknown>): string {
 interface Props { activities: ActivityLog[] }
 
 export function ActivityFeed({ activities }: Props) {
-  const data = activities.length > 0 ? activities : MOCK_ACTIVITIES;
+  const data = activities;
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden h-full">
       <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
@@ -42,6 +34,11 @@ export function ActivityFeed({ activities }: Props) {
         <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
       </div>
       <div className="divide-y divide-border">
+        {data.length === 0 && (
+          <p className="px-5 py-8 text-sm text-muted-foreground text-center">
+            No activity yet. Connect integrations to start syncing.
+          </p>
+        )}
         {data.map((item) => {
           const resourceType = item.resource_type as string;
           const Icon = ICON_MAP[resourceType] ?? Activity;

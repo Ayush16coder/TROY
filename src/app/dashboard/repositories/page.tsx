@@ -1,5 +1,13 @@
-import { Search, Plus, Lock, Globe } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Plus, Lock, Globe, Search } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { getWorkspaceForUser, isGithubConnected } from "@/lib/workspace";
+import { fetchRepositories } from "@/lib/data/dashboard";
+import { formatRelativeTime } from "@/lib/utils";
+import { ConnectGithubButton } from "@/components/dashboard/settings/connect-github";
+import { SyncGithubButton } from "@/components/integrations/sync-github-button";
 
 function GithubLogo({ className }: { className?: string }) {
   return (
@@ -9,113 +17,75 @@ function GithubLogo({ className }: { className?: string }) {
   );
 }
 
-const REPOSITORIES = [
-  {
-    id: 1,
-    name: "nexusforge-web",
-    description: "Main web application frontend for NexusForge",
-    visibility: "private",
-    language: "TypeScript",
-    updated: "2 hours ago",
-    connected: true,
-  },
-  {
-    id: 2,
-    name: "nexusforge-api",
-    description: "Core backend services and workers",
-    visibility: "private",
-    language: "Go",
-    updated: "5 hours ago",
-    connected: true,
-  },
-  {
-    id: 3,
-    name: "ui-components",
-    description: "Shared React component library",
-    visibility: "public",
-    language: "TypeScript",
-    updated: "1 day ago",
-    connected: false,
-  },
-];
+export const metadata = { title: "Repositories" };
 
-export default function RepositoriesPage() {
+export default async function RepositoriesPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+
+  const workspace = await getWorkspaceForUser(user.id);
+  if (!workspace) redirect("/onboarding");
+
+  const repos = await fetchRepositories(workspace.workspaceId);
+  const githubLinked = isGithubConnected(user);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Repositories</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage connected GitHub repositories and automatic deployments.
-          </p>
-        </div>
-        <button className="h-9 px-4 flex items-center justify-center gap-2 bg-foreground text-background hover:opacity-90 rounded-lg text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" />
-          Import Repository
-        </button>
-      </div>
+    <div className="max-w-[1400px] mx-auto space-y-6">
+      <PageHeader
+        title="Repositories"
+        description="GitHub repositories synced to your workspace."
+        actions={
+          githubLinked ? (
+            <SyncGithubButton />
+          ) : (
+            <ConnectGithubButton />
+          )
+        }
+      />
 
-      <div className="bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-zinc-200 dark:border-white/10 flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search repositories..."
-              className="w-full h-9 pl-9 pr-4 bg-zinc-100 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-            />
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        {repos.length === 0 ? (
+          <div className="p-12 text-center text-sm text-muted-foreground">
+            {githubLinked
+              ? "No repositories synced yet. Click Sync from GitHub above."
+              : "Connect GitHub to import repositories."}
           </div>
-        </div>
-
-        <div className="divide-y divide-zinc-200 dark:divide-white/10">
-          {REPOSITORIES.map((repo) => (
-            <div key={repo.id} className="p-4 flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="mt-1 flex-shrink-0 text-zinc-900 dark:text-white">
-                  <GithubLogo className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-foreground">{repo.name}</h3>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-200 dark:border-white/10 text-muted-foreground">
-                      {repo.visibility === "private" ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-                      <span className="capitalize">{repo.visibility}</span>
-                    </span>
+        ) : (
+          <div className="divide-y divide-border">
+            {repos.map((repo) => (
+              <div
+                key={repo.id}
+                className="p-4 flex items-center justify-between gap-4 hover:bg-secondary/30 transition-colors"
+              >
+                <div className="flex items-start gap-4 min-w-0">
+                  <GithubLogo className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-foreground">{repo.full_name}</h3>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border border-border text-muted-foreground">
+                        {repo.private ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+                        {repo.private ? "private" : "public"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                      {repo.default_branch}
+                      {repo.last_commit_sha && ` · ${repo.last_commit_sha.slice(0, 7)}`}
+                    </p>
+                    {repo.last_commit_message && (
+                      <p className="text-sm text-muted-foreground truncate mt-1">{repo.last_commit_message}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2 sm:mb-0 line-clamp-1">{repo.description}</p>
-                  
-                  <div className="flex items-center gap-4 text-[12px] text-muted-foreground sm:hidden mt-2">
-                    <span className="flex items-center gap-1.5">
-                      <span className={cn("w-2 h-2 rounded-full", repo.language === "TypeScript" ? "bg-blue-500" : "bg-cyan-500")} />
-                      {repo.language}
-                    </span>
-                    <span>Updated {repo.updated}</span>
-                  </div>
                 </div>
+                <span className="text-xs text-muted-foreground flex-shrink-0">
+                  {repo.synced_at ? formatRelativeTime(repo.synced_at) : "—"}
+                </span>
               </div>
-              
-              <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                <div className="hidden sm:flex items-center gap-6 text-[13px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span className={cn("w-2 h-2 rounded-full", repo.language === "TypeScript" ? "bg-blue-500" : "bg-cyan-500")} />
-                    {repo.language}
-                  </span>
-                  <span className="min-w-[100px]">Updated {repo.updated}</span>
-                </div>
-                
-                {repo.connected ? (
-                  <button className="h-8 px-3 text-xs font-medium bg-zinc-100 dark:bg-white/10 text-foreground rounded-md hover:bg-zinc-200 dark:hover:bg-white/20 transition-colors">
-                    Configure
-                  </button>
-                ) : (
-                  <button className="h-8 px-3 text-xs font-medium bg-foreground text-background hover:opacity-90 rounded-md transition-colors">
-                    Connect
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

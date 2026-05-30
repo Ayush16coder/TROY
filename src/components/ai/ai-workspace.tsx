@@ -77,29 +77,14 @@ function MessageBubble({ msg }: { msg: Message }) {
   );
 }
 
-const DEMO_RESPONSE = `I analyzed your deployment logs. Here are the key issues:
-
-**Root cause**: Missing environment variable \`DATABASE_URL\` in the production environment.
-
-**Build error** (line 847):
-\`\`\`
-Error: Environment variable not found: DATABASE_URL
-    at resolveConfig (/app/.next/server/chunks/842.js:1:423)
-\`\`\`
-
-**Recommended fixes**:
-1. Go to **Vercel Dashboard → Settings → Environment Variables**
-2. Add \`DATABASE_URL\` pointing to your Supabase connection string
-3. Re-trigger the deployment — it should succeed in ~40s
-
-Your build cache looks healthy. This is purely a missing env var.`;
-
 export function AIWorkspaceClient() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<Model>("gpt-4o");
   const [modelOpen, setModelOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -114,16 +99,32 @@ export function AIWorkspaceClient() {
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
 
-    // Simulated response — replace with real API call to /api/ai/chat
-    await new Promise((r) => setTimeout(r, 1500));
-    const aiMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: DEMO_RESPONSE,
-      model,
-    };
-    setMessages((prev) => [...prev, aiMsg]);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content, model, sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "AI request failed");
+        setLoading(false);
+        return;
+      }
+      if (data.sessionId) setSessionId(data.sessionId);
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.content,
+        model,
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+      setError(null);
+    } catch {
+      setError("Failed to reach AI service");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const selectedModel = MODELS.find((m) => m.id === model)!;
@@ -242,8 +243,11 @@ export function AIWorkspaceClient() {
             <Send className="w-4 h-4 text-white" />
           </button>
         </div>
+        {error && (
+          <p className="text-[11px] text-rose-500 mt-2 text-center">{error}</p>
+        )}
         <p className="text-[11px] text-zinc-700 mt-2 text-center">
-          Shift+Enter for newline · Enter to send
+          Shift+Enter for newline · Enter to send · Requires API keys in .env.local
         </p>
       </div>
     </div>

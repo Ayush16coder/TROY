@@ -1,10 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
-export async function createClient() {
+/** Cookie-based Supabase client for Server Components and route handlers. */
+export async function createClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder",
     {
@@ -21,7 +23,7 @@ export async function createClient() {
         },
       },
     }
-  );
+  ) as SupabaseClient;
 }
 
 export async function createAdminClient() {

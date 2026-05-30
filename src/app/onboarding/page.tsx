@@ -111,7 +111,6 @@ function OnboardingContent() {
 
       const { error: dbError } = await supabase
         .from("users")
-        // @ts-expect-error: supabase types need to be updated
         .update({ phone_number: phone })
         .eq("id", user.id);
       if (dbError) throw dbError;
@@ -179,7 +178,6 @@ function OnboardingContent() {
       if (user) {
         await supabase
           .from("users")
-          // @ts-expect-error: supabase types need to be updated
           .update({ onboarding_completed: true })
           .eq("id", user.id);
       }

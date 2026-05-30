@@ -14,7 +14,7 @@ export function ConnectGithubButton() {
     const { error } = await supabase.auth.linkIdentity({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/dashboard/settings`,
+        redirectTo: `${window.location.origin}/dashboard/integrations?sync=github`,
       }
     });
     if (error) {

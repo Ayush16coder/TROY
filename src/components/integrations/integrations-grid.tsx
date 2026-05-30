@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, CheckCircle2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Settings, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ConnectGithubButton } from "@/components/dashboard/settings/connect-github";
+import type { IntegrationRow } from "@/lib/workspace";
 
 function GithubLogo({ className }: { className?: string }) {
   return (
@@ -24,163 +28,193 @@ function SupabaseLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 109 113" fill="none" className={className}>
       <path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627H99.3819C107.659 40.0627 112.198 49.7351 106.943 55.9467L63.7076 110.284Z" fill="url(#sb1)" />
-      <path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627H99.3819C107.659 40.0627 112.198 49.7351 106.943 55.9467L63.7076 110.284Z" fill="url(#sb2)" fillOpacity="0.2" />
-      <path d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.04075L54.4849 72.2922H9.07688C0.803704 72.2922 -3.73825 62.6198 1.51677 56.4082L45.317 2.07103Z" fill="#3ECF8E" />
+      <path d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.04075L54.4849 72.2922H9.07688C0.803704 72.2922-3.73825 62.6198 1.51677 56.4082L45.317 2.07103Z" fill="#3ECF8E" />
       <defs>
         <linearGradient id="sb1" x1="53.9738" y1="54.974" x2="94.1635" y2="71.8295" gradientUnits="userSpaceOnUse">
           <stop stopColor="#249361" /><stop offset="1" stopColor="#3ECF8E" />
-        </linearGradient>
-        <linearGradient id="sb2" x1="36.1558" y1="30.578" x2="54.4844" y2="65.0806" gradientUnits="userSpaceOnUse">
-          <stop /><stop offset="1" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>
   );
 }
 
-function RailwayLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 400 400" fill="none" className={className}>
-      <path d="M125.642 165.748L114.777 222.951L71.3093 189.967L84.2183 121.996L125.642 165.748Z" fill="currentColor"/>
-      <path d="M136.183 162.775L125.319 219.978L191.071 251.654L199.89 205.228L136.183 162.775Z" fill="currentColor"/>
-      <path d="M228.69 110.033L217.825 167.236L152.073 135.56L143.254 181.986L207.039 224.36L217.904 167.157L261.371 200.141L248.462 268.112L207.039 224.36L274.68 181.986L228.69 110.033Z" fill="currentColor"/>
-    </svg>
-  );
-}
-
-function RenderLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M22.99 12l-5.74-5.74-5.74 5.74 5.74 5.74 5.74-5.74zm-22.98 0l5.74 5.74 5.74-5.74-5.74-5.74-5.74 5.74zm11.49-11.49l-5.74 5.74 5.74 5.74 5.74-5.74-5.74-5.74zm0 22.98l-5.74-5.74 5.74-5.74 5.74 5.74-5.74 5.74z"/>
-    </svg>
-  );
-}
-
-function AwsLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M13.435 15.011c-2.317.935-4.992 1.341-7.534 1.135-2.274-.183-4.471-.854-6.388-1.93-.053-.03-.075-.097-.046-.151.054-.105.18-.28.32-.472.043-.057.126-.068.181-.022 1.776 1.488 4.093 2.378 6.55 2.502 2.766.14 5.562-.432 7.973-1.606.07-.034.152.012.164.088.03.189.066.388.106.586.012.062-.038.118-.097.135-.386.108-.813.22-1.229.335zM23.111 12.384c-.035-.06-.113-.07-.163-.021-1.127 1.109-2.613 2.112-4.425 2.924-.078.035-.079.146-.002.181 1.631.733 3.655 1.171 5.923.948.067-.006.109-.077.08-.135-.333-.671-.806-1.558-1.413-2.897zm.797 2.355c-2.385.742-4.981-.137-7.234-1.393-.112-.063-.052-.225.074-.225 1.879 0 3.69-.646 5.228-1.745.093-.066.216.035.158.136-.264.455-.56 1.05-.884 1.701.378-.456.745-.968 1.096-1.528.05-.081.17-.075.216.009.645 1.168 1.131 2.474 1.345 2.99.034.084-.047.164-.132.13zM15.42 12.316c-.22.064-.442.12-.667.168.04-.15.087-.315.138-.492.203-.706.495-1.942.548-2.663.023-.332.007-.58-.046-.745-.094-.286-.339-.42-.716-.42-.647 0-1.428.46-2.125.962-.835.6-1.636 1.488-2.12 2.308l-.348.618c-.288.544-.657 1.366-1.077 2.428-.46 1.175-.826 2.213-1.091 3.093h2.392c.28-1.082.722-2.396.963-3.136.257-.792.59-1.634.821-2.185.703-.131 1.503-.314 2.115-.494-1.394 2.05-3.037 3.39-5.111 4.14-1.296.471-2.585.576-3.791.31-1.353-.298-2.45-1.246-3.111-2.69-.474-1.035-.615-2.22-.387-3.232.253-1.127.915-2.176 1.838-2.92.836-.671 1.821-1.086 2.879-1.213.911-.11 1.767.032 2.466.41.343.185.642.422.884.7l.115-.889h2.32c-.147 1.05-.44 2.951-1.135 5.372v.001l4.045-1.427zm-9.336.564c-.114.542.067 1.075.452 1.332.285.19.67.24 1.056.136.877-.235 1.943-.915 3.011-1.92-1.503.208-2.637.317-3.522.317-.468 0-.821-.048-1.037-.145.021-.01.031.065.04.28zM19.06 6.815c0 .35-.046.726-.141 1.139-.074.32-.196.7-.354 1.119-.488 1.285-1.248 2.518-2.164 3.513-.783.85-1.678 1.528-2.573 1.956.76-.713 1.488-1.597 2.086-2.535.532-.835.952-1.74 1.205-2.6.216-.732.288-1.391.204-1.874-.08-.458-.337-.812-.731-1.009-.434-.216-1.011-.237-1.62-.061-.836.241-1.785.826-2.671 1.646-.867.8-1.643 1.815-2.203 2.882l.859.608c.556-1.081 1.328-2.102 2.189-2.898.771-.715 1.59-1.22 2.296-1.424.316-.091.616-.109.84-.05.275.074.457.25.568.513.061.144.119.349.123.606l.088-.43v-.001h2.001z"/>
-    </svg>
-  );
-}
-
-const INTEGRATIONS = [
+const PROVIDERS = [
   {
     id: "github",
     name: "GitHub",
-    description: "Sync repositories, track commits, and trigger deployments automatically on push.",
+    description: "Sync repositories, track commits, and trigger deployments on push.",
     icon: GithubLogo,
-    status: "connected",
-    color: "text-white dark:text-zinc-900",
     bg: "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900",
+    oauth: false as const,
   },
   {
     id: "vercel",
     name: "Vercel",
-    description: "Deploy Next.js apps globally. View preview URLs and live streaming build logs.",
+    description: "Deploy Next.js apps globally. Stream build logs and preview URLs.",
     icon: VercelLogo,
-    status: "connected",
-    color: "text-white dark:text-zinc-900",
     bg: "bg-black dark:bg-white text-white dark:text-zinc-900",
+    oauth: true as const,
   },
   {
     id: "supabase",
     name: "Supabase",
-    description: "Connect your PostgreSQL database, authentication, and realtime subscriptions.",
+    description: "Manage PostgreSQL databases, auth, and realtime from TROY.",
     icon: SupabaseLogo,
-    status: "disconnected",
-    color: "", // SVG handles its own colors
     bg: "bg-emerald-600",
+    oauth: true as const,
   },
-  {
-    id: "railway",
-    name: "Railway",
-    description: "Deploy backend services, worker dynos, and databases instantly.",
-    icon: RailwayLogo,
-    status: "disconnected",
-    color: "text-white",
-    bg: "bg-[#0b0d0e]", // Railway almost black
-  },
-  {
-    id: "render",
-    name: "Render",
-    description: "Unified cloud to build and run all your apps and websites.",
-    icon: RenderLogo,
-    status: "disconnected",
-    color: "text-white",
-    bg: "bg-[#000000]",
-  },
-  {
-    id: "aws",
-    name: "AWS EC2",
-    description: "Deploy and manage containerized infrastructure on Amazon Web Services.",
-    icon: AwsLogo,
-    status: "disconnected",
-    color: "text-white",
-    bg: "bg-[#232F3E]", // AWS color
-  },
-];
+] as const;
 
-export function IntegrationsGrid() {
+interface Props {
+  integrations: IntegrationRow[];
+  githubLinked: boolean;
+}
+
+export function IntegrationsGrid({ integrations, githubLinked }: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
 
-  const toggleConnection = (id: string) => {
+  const statusMap = Object.fromEntries(integrations.map((i) => [i.provider, i.status]));
+
+  const isConnected = (id: string) => {
+    if (id === "github") return githubLinked || statusMap.github === "connected";
+    return statusMap[id] === "connected";
+  };
+
+  const handleConnect = async (id: string) => {
+    if (id === "github") return;
+
+    if (PROVIDERS.find((p) => p.id === id)?.oauth) {
+      window.location.href = `/api/integrations/${id}/connect?next=/dashboard/integrations`;
+      return;
+    }
+  };
+
+  const handleDisconnect = async (id: string) => {
     setLoading(id);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      if (id === "github") {
+        toast.info("Disconnect GitHub from Supabase Auth in your account settings.");
+        return;
+      }
+      const res = await fetch(`/api/integrations/${id}/disconnect`, { method: "POST" });
+      if (!res.ok) throw new Error("Disconnect failed");
+      toast.success(`Disconnected ${id}`);
+      router.refresh();
+    } catch {
+      toast.error("Failed to disconnect");
+    } finally {
       setLoading(null);
-    }, 1500);
+    }
+  };
+
+  const handleSync = async (id: string) => {
+    setLoading(`sync-${id}`);
+    try {
+      const res = await fetch(`/api/integrations/${id}/sync`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(`Synced ${data.count ?? data.synced ?? 0} items from ${id}`);
+      router.refresh();
+    } catch {
+      toast.error(`Sync failed for ${id}`);
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {INTEGRATIONS.map((integration) => (
-        <div
-          key={integration.id}
-          className="bg-white dark:bg-zinc-900/60 p-5 rounded-2xl border border-zinc-200 dark:border-white/10 hover:border-blue-500/30 transition-all group flex flex-col shadow-sm"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0", integration.bg)}>
-              <integration.icon className={cn("w-6 h-6", integration.color)} />
-            </div>
-            {integration.status === "connected" ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20">
-                <CheckCircle2 className="w-3 h-3" />
-                Connected
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-zinc-100 dark:bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-500/20">
-                Not Connected
-              </span>
-            )}
-          </div>
-          
-          <h3 className="font-semibold text-foreground text-base mb-1.5">{integration.name}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-            {integration.description}
-          </p>
-
-          <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-white/10 flex items-center justify-between">
-            <button className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-              <Settings className="w-3.5 h-3.5" /> Configure
-            </button>
-            <button
-              onClick={() => toggleConnection(integration.id)}
-              disabled={loading === integration.id}
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50",
-                integration.status === "connected"
-                  ? "bg-zinc-900 dark:bg-white/10 hover:bg-zinc-800 dark:hover:bg-white/20 text-white"
-                  : "bg-foreground text-background hover:opacity-90"
-              )}
-            >
-              {loading === integration.id 
-                ? "Connecting..." 
-                : integration.status === "connected" ? "Disconnect" : "Connect"}
-            </button>
-          </div>
+    <>
+      {searchParams.get("connected") && (
+        <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
+          Successfully connected {searchParams.get("connected")}.
         </div>
-      ))}
-    </div>
+      )}
+      {searchParams.get("error") && (
+        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-sm text-rose-700 dark:text-rose-400">
+          Connection error: {searchParams.get("error")}. Check your API credentials in `.env.local`.
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {PROVIDERS.map((integration) => {
+          const connected = isConnected(integration.id);
+          return (
+            <div
+              key={integration.id}
+              className="bg-card p-5 rounded-2xl border border-border hover:border-primary/30 transition-all flex flex-col shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", integration.bg)}>
+                  <integration.icon className="w-6 h-6" />
+                </div>
+                {connected ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Connected
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-secondary text-muted-foreground border border-border">
+                    Not Connected
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-semibold text-foreground text-base mb-1.5">{integration.name}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed flex-1">{integration.description}</p>
+
+              <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
+                {connected && integration.id !== "github" && (
+                  <button
+                    onClick={() => handleSync(integration.id)}
+                    disabled={!!loading}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    {loading === `sync-${integration.id}` ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Settings className="w-3.5 h-3.5" />
+                    )}
+                    Sync
+                  </button>
+                )}
+                <div className="flex-1" />
+                {integration.id === "github" && !connected ? (
+                  <ConnectGithubButton />
+                ) : integration.id === "github" && connected ? (
+                  <button
+                    onClick={() => handleSync("github")}
+                    disabled={!!loading}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-secondary hover:bg-secondary/80"
+                  >
+                    {loading === "sync-github" ? "Syncing..." : "Sync Repos"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => (connected ? handleDisconnect(integration.id) : handleConnect(integration.id))}
+                    disabled={loading === integration.id}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50",
+                      connected
+                        ? "bg-secondary hover:bg-secondary/80 text-foreground"
+                        : "bg-foreground text-background hover:opacity-90"
+                    )}
+                  >
+                    {loading === integration.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : connected ? (
+                      "Disconnect"
+                    ) : (
+                      "Connect"
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -6,19 +6,39 @@ import Link from "next/link";
 import { LayoutGrid, List, Plus, GitBranch, Rocket, MoreHorizontal } from "lucide-react";
 import { ProviderIcon, type ProviderSlug } from "@/components/ui/provider-icon";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
-const PROJECTS = [
-  { name: "troy-web", slug: "troy-web", framework: "Next.js", repo: "acme/troy-web", provider: "vercel" as ProviderSlug, status: "active", deployments: 142, lastDeploy: "2m ago" },
-  { name: "api-gateway", slug: "api-gateway", framework: "Node.js", repo: "acme/api-gateway", provider: "railway" as ProviderSlug, status: "active", deployments: 89, lastDeploy: "1h ago" },
-  { name: "worker", slug: "worker", framework: "Rust", repo: "acme/worker", provider: "render" as ProviderSlug, status: "paused", deployments: 34, lastDeploy: "3d ago" },
-  { name: "docs", slug: "docs", framework: "Astro", repo: "acme/docs", provider: "netlify" as ProviderSlug, status: "active", deployments: 56, lastDeploy: "18m ago" },
-  { name: "mobile-api", slug: "mobile-api", framework: "Go", repo: "acme/mobile-api", provider: "aws" as ProviderSlug, status: "active", deployments: 201, lastDeploy: "45m ago" },
-  { name: "design-system", slug: "design-system", framework: "React", repo: "acme/design-system", provider: "vercel" as ProviderSlug, status: "archived", deployments: 12, lastDeploy: "2w ago" },
-];
+type ProjectRow = {
+  id: string;
+  name: string;
+  slug: string;
+  framework: string | null;
+  status: string;
+  updated_at: string;
+  deployments?: { id: string; status: string; created_at: string; provider: string }[];
+};
 
-export function ProjectsView() {
+const PROVIDER_SLUG: Record<string, ProviderSlug> = {
+  vercel: "vercel",
+  netlify: "netlify",
+  railway: "railway",
+  render: "render",
+  aws: "aws",
+};
+
+export function ProjectsView({ projects }: { projects: ProjectRow[] }) {
   const [view, setView] = useState<"grid" | "list">("grid");
+
+  if (projects.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-12 text-center">
+        <p className="text-muted-foreground mb-4">No projects yet. Create one to get started.</p>
+        <Button asChild>
+          <Link href="/dashboard/new"><Plus className="w-4 h-4 mr-1" /> New Project</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,39 +64,37 @@ export function ProjectsView() {
 
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {PROJECTS.map((p, i) => (
-            <motion.div
-              key={p.slug}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="group rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-md transition-all"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <ProviderIcon provider={p.provider} size="md" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">{p.name}</h3>
-                    <p className="text-xs text-muted-foreground">{p.framework}</p>
+          {projects.map((p, i) => {
+            const lastDep = p.deployments?.[0];
+            const provider = lastDep?.provider ?? "vercel";
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="group rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <ProviderIcon provider={PROVIDER_SLUG[provider] ?? "vercel"} size="md" />
+                    <div>
+                      <h3 className="font-semibold text-foreground">{p.name}</h3>
+                      <p className="text-xs text-muted-foreground">{p.framework ?? "—"}</p>
+                    </div>
                   </div>
+                  <span className="text-[10px] capitalize text-muted-foreground">{p.status}</span>
                 </div>
-                <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-secondary transition-all">
-                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                <GitBranch className="w-3 h-3" />
-                <span className="font-mono truncate">{p.repo}</span>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Rocket className="w-3 h-3" />
-                  {p.deployments} deploys
+                <div className="flex items-center justify-between pt-4 border-t border-border text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Rocket className="w-3 h-3" />
+                    {p.deployments?.length ?? 0} deploys
+                  </span>
+                  <span>{formatRelativeTime(p.updated_at)}</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground">{p.lastDeploy}</span>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       ) : (
         <div className="rounded-xl border border-border overflow-hidden">
@@ -84,20 +102,18 @@ export function ProjectsView() {
             <thead>
               <tr className="border-b border-border bg-secondary/30">
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Project</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Repository</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Provider</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Framework</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Last Deploy</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Updated</th>
               </tr>
             </thead>
             <tbody>
-              {PROJECTS.map((p) => (
-                <tr key={p.slug} className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground hidden md:table-cell">{p.repo}</td>
-                  <td className="px-4 py-3"><ProviderIcon provider={p.provider} size="sm" /></td>
+              {projects.map((p) => (
+                <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/30">
+                  <td className="px-4 py-3 font-medium">{p.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.framework ?? "—"}</td>
                   <td className="px-4 py-3 capitalize text-muted-foreground">{p.status}</td>
-                  <td className="px-4 py-3 text-right text-muted-foreground">{p.lastDeploy}</td>
+                  <td className="px-4 py-3 text-right text-muted-foreground">{formatRelativeTime(p.updated_at)}</td>
                 </tr>
               ))}
             </tbody>

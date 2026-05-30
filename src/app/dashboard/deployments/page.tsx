@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DeploymentsList } from "@/components/deployments/deployments-list";
+import { getWorkspaceForUser } from "@/lib/workspace";
 
 export const metadata = { title: "Deployments" };
 
@@ -9,9 +10,12 @@ export default async function DeploymentsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
+  const workspace = await getWorkspaceForUser(user.id);
+
   const { data: deployments } = await supabase
     .from("deployments")
     .select("*, projects(name, slug)")
+    .eq("workspace_id", workspace?.workspaceId ?? "")
     .order("created_at", { ascending: false })
     .limit(50);
 

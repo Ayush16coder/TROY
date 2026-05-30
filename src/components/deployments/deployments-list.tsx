@@ -6,14 +6,6 @@ import { Rocket, GitCommit, ExternalLink, RefreshCw, Filter, ChevronDown } from 
 import type { Deployment } from "@/types/database";
 import { motion, AnimatePresence } from "framer-motion";
 
-const MOCK: (Deployment & { projects?: { name: string; slug: string } | null })[] = [
-  { id: "1", project_id: "p1", workspace_id: "w1", provider: "vercel", provider_deployment_id: "dpl_a1", status: "ready", environment: "production", branch: "main", commit_sha: "a3f8c91", commit_message: "feat: add AI workspace", url: "https://my-app.vercel.app", build_duration_ms: 42000, triggered_by: null, created_at: new Date(Date.now() - 120000).toISOString(), updated_at: new Date().toISOString(), completed_at: new Date().toISOString(), projects: { name: "my-app", slug: "my-app" } },
-  { id: "2", project_id: "p2", workspace_id: "w1", provider: "railway", provider_deployment_id: "rly_b2", status: "building", environment: "production", branch: "main", commit_sha: "b7d2e44", commit_message: "fix: resolve connection timeout", url: null, build_duration_ms: null, triggered_by: null, created_at: new Date(Date.now() - 60000).toISOString(), updated_at: new Date().toISOString(), completed_at: null, projects: { name: "api-server", slug: "api-server" } },
-  { id: "3", project_id: "p3", workspace_id: "w1", provider: "netlify", provider_deployment_id: "ntl_c3", status: "error", environment: "preview", branch: "feature/dark-mode", commit_sha: "c1a9b33", commit_message: "ui: dark mode toggle", url: null, build_duration_ms: 31000, triggered_by: null, created_at: new Date(Date.now() - 300000).toISOString(), updated_at: new Date().toISOString(), completed_at: new Date(Date.now() - 270000).toISOString(), projects: { name: "marketing-site", slug: "marketing-site" } },
-  { id: "4", project_id: "p1", workspace_id: "w1", provider: "vercel", provider_deployment_id: "dpl_d4", status: "ready", environment: "preview", branch: "feat/auth", commit_sha: "d5c3b22", commit_message: "auth: add GitHub OAuth", url: "https://my-app-git-feat-auth.vercel.app", build_duration_ms: 38000, triggered_by: null, created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: new Date().toISOString(), completed_at: new Date(Date.now() - 3560000).toISOString(), projects: { name: "my-app", slug: "my-app" } },
-  { id: "5", project_id: "p4", workspace_id: "w1", provider: "render", provider_deployment_id: "rnd_e5", status: "cancelled", environment: "production", branch: "main", commit_sha: "e9f1a00", commit_message: "chore: upgrade dependencies", url: null, build_duration_ms: null, triggered_by: null, created_at: new Date(Date.now() - 7200000).toISOString(), updated_at: new Date().toISOString(), completed_at: null, projects: { name: "worker", slug: "worker" } },
-];
-
 const PROVIDER_BADGE: Record<string, string> = {
   vercel: "bg-zinc-800 text-white",
   netlify: "bg-teal-500/15 text-teal-400",
@@ -36,8 +28,7 @@ interface Props {
 
 export function DeploymentsList({ deployments }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
-  const data = deployments.length > 0 ? deployments : MOCK;
-  const filtered = filter === "all" ? data : data.filter((d) => d.status === filter);
+  const filtered = filter === "all" ? deployments : deployments.filter((d) => d.status === filter);
 
   return (
     <div className="space-y-4">

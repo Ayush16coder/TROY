@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 // GitHub Webhook Signature Verification
 function verifyGitHubSignature(payload: string, signature: string | null, secret: string) {
@@ -27,11 +27,21 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = JSON.parse(rawBody);
-    const supabase = (await createAdminClient()) as any;
+    const supabase = createServiceClient();
 
-    // Store sync event
+    const githubRepoId = payload.repository?.id;
+    let workspaceId = "system";
+    if (githubRepoId) {
+      const { data: repo } = await supabase
+        .from("repositories")
+        .select("workspace_id")
+        .eq("github_id", githubRepoId)
+        .maybeSingle();
+      if (repo?.workspace_id) workspaceId = repo.workspace_id;
+    }
+
     await supabase.from("sync_events").insert({
-      workspace_id: payload.repository?.owner?.id?.toString() || "system",
+      workspace_id: workspaceId,
       event_type: event || "unknown",
       provider: "github",
       payload: payload as any,

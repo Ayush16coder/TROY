@@ -17,15 +17,8 @@ const PROVIDER_COLORS: Record<string, string> = {
   aws: "text-orange-400",
 };
 
-// Mock data for demo when DB is empty
-const MOCK: Props["deployments"] = [
-  { id: "1", project_id: "p1", workspace_id: "w1", provider: "vercel", provider_deployment_id: "dpl_xyz", status: "ready", environment: "production", branch: "main", commit_sha: "a3f8c91", commit_message: "feat: add AI workspace", url: "https://my-app.vercel.app", build_duration_ms: 42000, triggered_by: null, created_at: new Date(Date.now() - 120000).toISOString(), updated_at: new Date().toISOString(), completed_at: new Date().toISOString(), projects: { name: "my-app", slug: "my-app" } },
-  { id: "2", project_id: "p2", workspace_id: "w1", provider: "railway", provider_deployment_id: "rly_abc", status: "building", environment: "production", branch: "main", commit_sha: "b7d2e44", commit_message: "fix: resolve connection timeout", url: null, build_duration_ms: null, triggered_by: null, created_at: new Date(Date.now() - 60000).toISOString(), updated_at: new Date().toISOString(), completed_at: null, projects: { name: "api-server", slug: "api-server" } },
-  { id: "3", project_id: "p3", workspace_id: "w1", provider: "netlify", provider_deployment_id: "ntl_def", status: "error", environment: "preview", branch: "feature/dark-mode", commit_sha: "c1a9b33", commit_message: "ui: dark mode toggle", url: null, build_duration_ms: 31000, triggered_by: null, created_at: new Date(Date.now() - 300000).toISOString(), updated_at: new Date().toISOString(), completed_at: new Date(Date.now() - 270000).toISOString(), projects: { name: "marketing-site", slug: "marketing-site" } },
-];
-
 export function RecentDeployments({ deployments }: Props) {
-  const data = deployments.length > 0 ? deployments : MOCK;
+  const data = deployments;
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -39,6 +32,11 @@ export function RecentDeployments({ deployments }: Props) {
         </Link>
       </div>
       <div className="divide-y divide-border">
+        {data.length === 0 && (
+          <p className="px-5 py-8 text-sm text-muted-foreground text-center">
+            No deployments yet. Connect Vercel and run Sync from Integrations.
+          </p>
+        )}
         {data.map((d) => (
           <div key={d.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-secondary/40 transition-colors">
             <div className="flex-shrink-0">
