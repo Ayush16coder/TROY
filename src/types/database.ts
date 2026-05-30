@@ -120,34 +120,34 @@ export interface Database {
         Insert: Omit<Database["public"]["Tables"]["deployment_logs"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["deployment_logs"]["Insert"]>;
       };
-      integrations: {
+      provider_connections: {
         Row: {
           id: string;
           workspace_id: string;
           provider: string;
           name: string;
           status: "connected" | "disconnected" | "error" | "pending";
-          metadata: Json;
+          metadata: any;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["integrations"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["integrations"]["Insert"]>;
+        Insert: Omit<Database["public"]["Tables"]["provider_connections"]["Row"], "id" | "created_at" | "updated_at">;
+        Update: Partial<Database["public"]["Tables"]["provider_connections"]["Insert"]>;
       };
-      integration_tokens: {
+      provider_tokens: {
         Row: {
           id: string;
-          integration_id: string;
+          connection_id: string;
           workspace_id: string;
           access_token_encrypted: string;
           refresh_token_encrypted: string | null;
           expires_at: string | null;
-          scopes: string[];
+          scopes: string[] | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["integration_tokens"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["integration_tokens"]["Insert"]>;
+        Insert: Omit<Database["public"]["Tables"]["provider_tokens"]["Row"], "id" | "created_at" | "updated_at">;
+        Update: Partial<Database["public"]["Tables"]["provider_tokens"]["Insert"]>;
       };
       ai_sessions: {
         Row: {
@@ -268,7 +268,7 @@ export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type Repository = Database["public"]["Tables"]["repositories"]["Row"];
 export type Deployment = Database["public"]["Tables"]["deployments"]["Row"];
 export type DeploymentLog = Database["public"]["Tables"]["deployment_logs"]["Row"];
-export type Integration = Database["public"]["Tables"]["integrations"]["Row"];
+export type Integration = Database["public"]["Tables"]["provider_connections"]["Row"];
 export type AiSession = Database["public"]["Tables"]["ai_sessions"]["Row"];
 export type AiMessage = Database["public"]["Tables"]["ai_messages"]["Row"];
 export type Notification = Database["public"]["Tables"]["notifications"]["Row"];

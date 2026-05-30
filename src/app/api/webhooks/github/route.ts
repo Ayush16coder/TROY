@@ -1,77 +1,59 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/service";
+import { processSyncEngineEvent } from "@/lib/sync-engine";
 
-// GitHub Webhook Signature Verification
-function verifyGitHubSignature(payload: string, signature: string | null, secret: string) {
-  if (!signature) return false;
-  const hmac = crypto.createHmac("sha256", secret);
-  const digest = `sha256=${hmac.update(payload).digest("hex")}`;
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+const GITHUB_WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
+
+function verifyGitHubSignature(payload: string, signature: string | null): boolean {
+  if (!GITHUB_WEBHOOK_SECRET || !signature) return false;
+  
+  try {
+    const hmac = crypto.createHmac("sha256", GITHUB_WEBHOOK_SECRET);
+    const digest = "sha256=" + hmac.update(payload).digest("hex");
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  } catch (error) {
+    console.error("Signature verification failed:", error);
+    return false;
+  }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const rawBody = await req.text();
+    const payloadText = await req.text();
     const signature = req.headers.get("x-hub-signature-256");
-    const event = req.headers.get("x-github-event");
-    const secret = process.env.GITHUB_WEBHOOK_SECRET;
+    const eventType = req.headers.get("x-github-event") || "unknown";
 
-    if (!secret) {
-      console.error("Missing GITHUB_WEBHOOK_SECRET");
-      return NextResponse.json({ error: "Configuration error" }, { status: 500 });
-    }
-
-    if (!verifyGitHubSignature(rawBody, signature, secret)) {
+    if (!verifyGitHubSignature(payloadText, signature)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = JSON.parse(rawBody);
-    const supabase = createServiceClient();
+    const payload = JSON.parse(payloadText);
+    const admin = createServiceClient();
 
-    const githubRepoId = payload.repository?.id;
-    let workspaceId = "system";
-    if (githubRepoId) {
-      const { data: repo } = await supabase
-        .from("repositories")
-        .select("workspace_id")
-        .eq("github_id", githubRepoId)
-        .maybeSingle();
-      if (repo?.workspace_id) workspaceId = repo.workspace_id;
-    }
-
-    await supabase.from("sync_events").insert({
-      workspace_id: workspaceId,
-      event_type: event || "unknown",
+    // Store the webhook event
+    const { data: event, error } = await admin.from("webhook_events").insert({
       provider: "github",
-      payload: payload as any,
+      event_type: eventType,
+      payload: payload,
       status: "pending",
-      error: null,
-      processed_at: null,
-    } as any);
+    }).select("id").single();
 
-    if (event === "push") {
-      const { repository, commits, head_commit, ref } = payload;
-      
-      // Update repository status
-      await supabase
-        .from("repositories")
-        .update({
-          last_commit_sha: head_commit?.id,
-          last_commit_message: head_commit?.message,
-          last_commit_at: head_commit?.timestamp,
-          synced_at: new Date().toISOString(),
-        } as any)
-        .eq("github_id", repository.id);
-
-      // In a real system, we would trigger Trigger.dev background jobs here
-      // to synchronize with Vercel, Railway, etc.
-      console.log(`[GitHub Webhook] Push to ${repository.full_name} on ${ref}. Commits: ${commits.length}`);
+    if (error || !event) {
+      console.error("Failed to store webhook event:", error);
+      return NextResponse.json({ error: "Failed to store event" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("[GitHub Webhook Error]", error);
+    // Trigger internal sync engine asynchronously (fire and forget)
+    // In a real environment with Trigger.dev/Inngest this would be a job dispatch.
+    // For Vercel/Next.js, we invoke our own background processor without awaiting.
+    processSyncEngineEvent(event.id).catch(err => {
+      console.error("Background sync processor failed:", err);
+    });
+
+    return NextResponse.json({ success: true, eventId: event.id });
+  } catch (error) {
+    console.error("GitHub webhook error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

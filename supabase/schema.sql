@@ -142,8 +142,8 @@ CREATE TABLE environments (
 );
 ALTER TABLE environments ENABLE ROW LEVEL SECURITY;
 
--- 9. Integrations
-CREATE TABLE integrations (
+-- 9. Provider Connections
+CREATE TABLE provider_connections (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     provider TEXT NOT NULL,
@@ -154,12 +154,12 @@ CREATE TABLE integrations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(workspace_id, provider)
 );
-ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE provider_connections ENABLE ROW LEVEL SECURITY;
 
--- 10. Integration Tokens (Encrypted)
-CREATE TABLE integration_tokens (
+-- 10. Provider Tokens (Encrypted)
+CREATE TABLE provider_tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    integration_id UUID NOT NULL REFERENCES integrations(id) ON DELETE CASCADE,
+    connection_id UUID NOT NULL REFERENCES provider_connections(id) ON DELETE CASCADE,
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     access_token_encrypted TEXT NOT NULL,
     refresh_token_encrypted TEXT,
@@ -167,9 +167,49 @@ CREATE TABLE integration_tokens (
     scopes TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(integration_id)
+    UNIQUE(connection_id)
 );
-ALTER TABLE integration_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE provider_tokens ENABLE ROW LEVEL SECURITY;
+
+-- 10a. Provider Projects
+CREATE TABLE provider_projects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    connection_id UUID NOT NULL REFERENCES provider_connections(id) ON DELETE CASCADE,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    provider_project_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(connection_id, provider_project_id)
+);
+ALTER TABLE provider_projects ENABLE ROW LEVEL SECURITY;
+
+-- 10b. Provider Health
+CREATE TABLE provider_health (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    connection_id UUID NOT NULL REFERENCES provider_connections(id) ON DELETE CASCADE,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    last_check_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    error_message TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    UNIQUE(connection_id)
+);
+ALTER TABLE provider_health ENABLE ROW LEVEL SECURITY;
+
+-- 10c. Webhook Events
+CREATE TABLE webhook_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    provider TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    status sync_event_status NOT NULL DEFAULT 'pending',
+    error TEXT,
+    processed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE webhook_events ENABLE ROW LEVEL SECURITY;
 
 -- 11. AI Sessions
 CREATE TABLE ai_sessions (

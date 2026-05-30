@@ -53,11 +53,11 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-5">
-          <RecentDeployments deployments={deploymentsRes.data ?? []} />
+          <RecentDeployments deployments={deploymentsRes.data ?? []} workspaceId={workspace.workspaceId} />
           <DeploymentTimeline deployments={deploymentsRes.data ?? []} />
         </div>
         <div className="space-y-5">
-          <ActivityFeed activities={activityRes.data ?? []} />
+          <ActivityFeed activities={activityRes.data ?? []} workspaceId={workspace.workspaceId} />
           <ProviderHealth providers={providerHealth} />
         </div>
       </div>

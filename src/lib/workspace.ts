@@ -53,7 +53,7 @@ export type IntegrationRow = {
 export async function getWorkspaceIntegrations(workspaceId: string): Promise<IntegrationRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("integrations")
+    .from("provider_connections")
     .select("id, provider, name, status, metadata, updated_at")
     .eq("workspace_id", workspaceId);
 

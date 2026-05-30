@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { formatRelativeTime } from "@/lib/utils";
 import { Activity, GitBranch, Rocket, Key, Users, Settings } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import type { ActivityLog } from "@/types/database";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -22,10 +24,34 @@ function formatAction(action: string, meta: Record<string, unknown>): string {
   return verb;
 }
 
-interface Props { activities: ActivityLog[] }
+interface Props { activities: ActivityLog[]; workspaceId: string }
 
-export function ActivityFeed({ activities }: Props) {
-  const data = activities;
+export function ActivityFeed({ activities, workspaceId }: Props) {
+  const [data, setData] = useState<ActivityLog[]>(activities);
+
+  useEffect(() => {
+    setData(activities);
+  }, [activities]);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel("activity-feed-changes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_logs", filter: `workspace_id=eq.${workspaceId}` },
+        (payload) => {
+          setData((prev) => [payload.new as ActivityLog, ...prev].slice(0, 10));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [workspaceId]);
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden h-full">
       <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
@@ -44,7 +70,7 @@ export function ActivityFeed({ activities }: Props) {
           const Icon = ICON_MAP[resourceType] ?? Activity;
           const meta = (item.metadata ?? {}) as Record<string, unknown>;
           return (
-            <div key={item.id} className="flex items-start gap-3 px-5 py-3 hover:bg-secondary/40 transition-colors">
+            <div key={item.id} className="flex items-start gap-3 px-5 py-3 hover:bg-secondary/40 transition-colors animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="w-6 h-6 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
                 <Icon className="w-3 h-3 text-muted-foreground" />
               </div>

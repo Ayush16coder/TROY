@@ -57,7 +57,7 @@ export default async function SettingsPage() {
   let integrations: any[] = [];
   if (workspaceId) {
     const { data } = await (supabase as any)
-      .from("integrations")
+      .from("provider_connections")
       .select("*")
       .eq("workspace_id", workspaceId);
     integrations = data || [];

@@ -5,7 +5,7 @@ import { InfraTopology } from "@/components/infrastructure/infra-topology";
 import { ProviderHealth } from "@/components/dashboard/provider-health";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { Network, Zap, Shield, RefreshCw } from "lucide-react";
-import { getWorkspaceForUser, getWorkspaceIntegrations, isGithubConnected } from "@/lib/workspace";
+import { getWorkspaceForUser, getWorkspaceIntegrations } from "@/lib/workspace";
 import { buildProviderHealth } from "@/lib/data/dashboard";
 
 export const metadata = { title: "Infrastructure" };
@@ -39,7 +39,7 @@ export default async function InfrastructurePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <MetricCard label="Projects" value={String(projectCount ?? 0)} icon={Network} accent="blue" index={0} />
         <MetricCard label="Connected" value={`${connected}/${providers.length}`} icon={Zap} accent="emerald" index={1} />
-        <MetricCard label="GitHub" value={isGithubConnected(user) ? "Linked" : "—"} icon={Shield} accent="cyan" index={2} />
+        <MetricCard label="Providers" value={`${connected} active`} icon={Shield} accent="cyan" index={2} />
         <MetricCard label="Integrations" value={String(integrations.length)} icon={RefreshCw} accent="amber" index={3} />
       </div>
 

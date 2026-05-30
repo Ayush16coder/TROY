@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { encryptToken, decryptToken } from "@/lib/encryption";
 
 export async function upsertIntegration(
   workspaceId: string,
@@ -16,7 +17,7 @@ export async function upsertIntegration(
   const admin = createServiceClient();
 
   const { data: integration, error: intError } = await admin
-    .from("integrations")
+    .from("provider_connections")
     .upsert(
       {
         workspace_id: workspaceId,
@@ -36,17 +37,17 @@ export async function upsertIntegration(
   }
 
   if (options.accessToken) {
-    const { error: tokError } = await admin.from("integration_tokens").upsert(
+    const { error: tokError } = await admin.from("provider_tokens").upsert(
       {
-        integration_id: integration.id,
+        connection_id: integration.id,
         workspace_id: workspaceId,
-        access_token_encrypted: options.accessToken,
-        refresh_token_encrypted: options.refreshToken ?? null,
+        access_token_encrypted: encryptToken(options.accessToken),
+        refresh_token_encrypted: options.refreshToken ? encryptToken(options.refreshToken) : null,
         expires_at: options.expiresAt ?? null,
         scopes: options.scopes ?? [],
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "integration_id" }
+      { onConflict: "connection_id" }
     );
 
     if (tokError) throw new Error(tokError.message);
@@ -59,16 +60,16 @@ export async function disconnectIntegration(workspaceId: string, provider: strin
   const admin = createServiceClient();
 
   const { data: integration } = await admin
-    .from("integrations")
+    .from("provider_connections")
     .select("id")
     .eq("workspace_id", workspaceId)
     .eq("provider", provider)
     .maybeSingle();
 
   if (integration?.id) {
-    await admin.from("integration_tokens").delete().eq("integration_id", integration.id);
+    await admin.from("provider_tokens").delete().eq("connection_id", integration.id);
     await admin
-      .from("integrations")
+      .from("provider_connections")
       .update({ status: "disconnected", updated_at: new Date().toISOString() })
       .eq("id", integration.id);
   }
@@ -81,15 +82,22 @@ export async function getIntegrationToken(
   const admin = createServiceClient();
 
   const { data } = await admin
-    .from("integrations")
-    .select("id, integration_tokens(access_token_encrypted)")
+    .from("provider_connections")
+    .select("id, provider_tokens(access_token_encrypted)")
     .eq("workspace_id", workspaceId)
     .eq("provider", provider)
     .eq("status", "connected")
     .maybeSingle();
 
-  const tokens = data?.integration_tokens as { access_token_encrypted: string }[] | { access_token_encrypted: string } | null;
+  const tokens = data?.provider_tokens as { access_token_encrypted: string }[] | { access_token_encrypted: string } | null;
   if (!tokens) return null;
-  if (Array.isArray(tokens)) return tokens[0]?.access_token_encrypted ?? null;
-  return tokens.access_token_encrypted ?? null;
+  
+  let encryptedToken: string | null = null;
+  if (Array.isArray(tokens)) {
+    encryptedToken = tokens[0]?.access_token_encrypted ?? null;
+  } else {
+    encryptedToken = tokens.access_token_encrypted ?? null;
+  }
+  
+  return encryptedToken ? decryptToken(encryptedToken) : null;
 }

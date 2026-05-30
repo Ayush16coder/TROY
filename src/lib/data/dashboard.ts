@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationRow } from "@/lib/workspace";
-import { isGithubConnected } from "@/lib/workspace";
 import type { User } from "@supabase/supabase-js";
 
 export async function fetchOverviewStats(workspaceId: string) {
@@ -16,7 +15,7 @@ export async function fetchOverviewStats(workspaceId: string) {
   ] = await Promise.all([
     supabase.from("deployments").select("id, status, build_duration_ms", { count: "exact" }).eq("workspace_id", workspaceId),
     supabase.from("projects").select("id", { count: "exact" }).eq("workspace_id", workspaceId).eq("status", "active"),
-    supabase.from("integrations").select("id, status").eq("workspace_id", workspaceId).eq("status", "connected"),
+    supabase.from("provider_connections").select("id, status").eq("workspace_id", workspaceId).eq("status", "connected"),
     supabase.from("workspace_members").select("id", { count: "exact" }).eq("workspace_id", workspaceId),
     supabase.from("deployments").select("id", { count: "exact" }).eq("workspace_id", workspaceId).eq("status", "error"),
     supabase.from("ai_sessions").select("id", { count: "exact" }).eq("workspace_id", workspaceId),
@@ -54,20 +53,12 @@ export type ProviderHealthItem = {
 
 export function buildProviderHealth(
   integrations: IntegrationRow[],
-  user: User
+  _user?: User
 ): ProviderHealthItem[] {
   const map = Object.fromEntries(integrations.map((i) => [i.provider, i]));
-  const providers = ["github", "vercel", "supabase", "railway", "docker", "kubernetes", "aws", "cloudflare"];
+  const providers = ["github", "vercel", "supabase", "railway", "docker", "aws"];
 
   return providers.map((provider) => {
-    if (provider === "github") {
-      const connected = isGithubConnected(user) || map.github?.status === "connected";
-      return {
-        provider,
-        status: connected ? "connected" : "idle",
-        latency: connected ? "—" : "—",
-      };
-    }
     const int = map[provider];
     const connected = int?.status === "connected";
     return {

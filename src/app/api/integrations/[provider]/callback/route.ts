@@ -86,6 +86,46 @@ export async function GET(
       }
       accessToken = tokenData.access_token;
       refreshToken = tokenData.refresh_token;
+    } else if (provider === "github") {
+      const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: `${origin}/api/integrations/github/callback`,
+        }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) {
+        console.error("GitHub token exchange:", tokenData);
+        return NextResponse.redirect(`${origin}${nextPath}?error=github_token_failed`);
+      }
+      accessToken = tokenData.access_token;
+      refreshToken = tokenData.refresh_token; // usually undefined for GitHub default flow
+    } else if (provider === "railway") {
+      const tokenRes = await fetch("https://railway.com/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: process.env.RAILWAY_CLIENT_ID!,
+          client_secret: process.env.RAILWAY_CLIENT_SECRET!,
+          code,
+          redirect_uri: `${origin}/api/integrations/railway/callback`,
+          grant_type: "authorization_code",
+        }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) {
+        console.error("Railway token exchange:", tokenData);
+        return NextResponse.redirect(`${origin}${nextPath}?error=railway_token_failed`);
+      }
+      accessToken = tokenData.access_token;
+      refreshToken = tokenData.refresh_token;
     } else {
       return NextResponse.redirect(`${origin}${nextPath}?error=unsupported_provider`);
     }

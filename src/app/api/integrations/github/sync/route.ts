@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { requireWorkspace, isGithubConnected } from "@/lib/workspace";
-import { upsertIntegration } from "@/lib/integrations/store";
+import { requireWorkspace } from "@/lib/workspace";
+import { upsertIntegration, getIntegrationToken } from "@/lib/integrations/store";
 
 interface GithubRepo {
   id: number;
@@ -25,32 +25,21 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isGithubConnected(user)) {
-    return NextResponse.json(
-      {
-        error: "github_not_linked",
-        message: "Connect GitHub in Settings first.",
-      },
-      { status: 400 }
-    );
-  }
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const providerToken = sessionData.session?.provider_token;
+  const workspace = await requireWorkspace(user);
+  const providerToken = await getIntegrationToken(workspace.workspaceId, "github");
 
   if (!providerToken) {
     return NextResponse.json(
       {
         error: "no_provider_token",
-        message:
-          "Enable 'Store provider tokens' for GitHub in Supabase Auth settings, then reconnect GitHub.",
+        message: "Please connect GitHub in Settings to allow repository syncing.",
       },
       { status: 400 }
     );
   }
 
   try {
-    const workspace = await requireWorkspace(user);
     const admin = createServiceClient();
 
     const ghRes = await fetch("https://api.github.com/user/repos?per_page=100&sort=updated", {
@@ -69,21 +58,25 @@ export async function POST() {
 
     const repos: GithubRepo[] = await ghRes.json();
 
-    const identity = user.identities?.find((i) => i.provider === "github");
-    const githubUsername =
-      (identity?.identity_data?.user_name as string) ??
-      (identity?.identity_data?.preferred_username as string) ??
-      user.email?.split("@")[0] ??
-      "user";
+    // Fetch authenticated user info from GitHub
+    const ghUserRes = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${providerToken}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
+    const ghUser = ghUserRes.ok ? await ghUserRes.json() : null;
+    const githubUsername = ghUser?.login ?? user.email?.split("@")[0] ?? "user";
 
     await upsertIntegration(workspace.workspaceId, "github", {
       status: "connected",
       metadata: {
         username: githubUsername,
+        avatar_url: ghUser?.avatar_url,
         repo_count: repos.length,
         synced_at: new Date().toISOString(),
       },
-      accessToken: providerToken,
     });
 
     await admin.from("users").update({ github_username: githubUsername }).eq("id", user.id);
