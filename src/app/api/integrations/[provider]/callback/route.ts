@@ -154,8 +154,9 @@ export async function GET(
     }).catch(() => {});
 
     return NextResponse.redirect(`${origin}${nextPath}?connected=${provider}`);
-  } catch (err) {
-    console.error(`OAuth callback ${provider}:`, err);
-    return NextResponse.redirect(`${origin}${nextPath}?error=callback_failed`);
+  } catch (err: any) {
+    console.error(`OAuth callback ${provider}:`, err?.message ?? err);
+    const detail = encodeURIComponent(err?.message ?? "unknown");
+    return NextResponse.redirect(`${origin}${nextPath}?error=callback_failed&detail=${detail}`);
   }
 }

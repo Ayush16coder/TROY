@@ -200,7 +200,10 @@ export function IntegrationsGrid({ integrations }: Props) {
       )}
       {searchParams.get("error") && (
         <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-sm text-rose-700 dark:text-rose-400">
-          Connection error: {searchParams.get("error")}. Check your API credentials in `.env.local`.
+          Connection error: <strong>{searchParams.get("error")}</strong>
+          {searchParams.get("detail") && (
+            <span className="ml-1 opacity-80">— {decodeURIComponent(searchParams.get("detail")!)}</span>
+          )}
         </div>
       )}
 
