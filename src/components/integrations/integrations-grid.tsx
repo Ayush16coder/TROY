@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Settings, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { ConnectGithubButton } from "@/components/dashboard/settings/connect-github";
 import type { IntegrationRow } from "@/lib/workspace";
 
 function GithubLogo({ className }: { className?: string }) {
@@ -116,7 +115,6 @@ const PROVIDERS = [
 
 interface Props {
   integrations: IntegrationRow[];
-  githubLinked?: boolean;
 }
 
 export function IntegrationsGrid({ integrations }: Props) {

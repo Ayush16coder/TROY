@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { IntegrationsGrid } from "@/components/integrations/integrations-grid";
-import { getWorkspaceIntegrations, getWorkspaceForUser, isGithubConnected } from "@/lib/workspace";
+import { getWorkspaceIntegrations, getWorkspaceForUser } from "@/lib/workspace";
 
 export const metadata = { title: "Providers" };
 
@@ -24,7 +24,7 @@ export default async function ProvidersPage() {
         description="Manage connected infrastructure providers, permissions, and health status."
       />
       <Suspense fallback={null}>
-        <IntegrationsGrid integrations={integrations} githubLinked={isGithubConnected(user)} />
+        <IntegrationsGrid integrations={integrations} />
       </Suspense>
     </div>
   );
