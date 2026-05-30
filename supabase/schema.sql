@@ -290,14 +290,28 @@ CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid() = 
 -- Users can update their own data
 CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid() = id);
 
+-- -----------------------------------------------------------------------------
+-- SECURITY DEFINER FUNCTIONS for RLS
+-- -----------------------------------------------------------------------------
+-- This function allows checking workspace membership without triggering RLS recursively
+CREATE OR REPLACE FUNCTION public.get_user_workspaces()
+RETURNS SETOF uuid
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+    SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid();
+$$;
+
 -- Users can read workspaces they are members of
 CREATE POLICY "Users can read their workspaces" ON workspaces FOR SELECT USING (
-    EXISTS (SELECT 1 FROM workspace_members WHERE workspace_id = workspaces.id AND user_id = auth.uid())
+    id IN (SELECT public.get_user_workspaces())
 );
 
 -- Users can read workspace members for their workspaces
 CREATE POLICY "Users can read workspace members" ON workspace_members FOR SELECT USING (
-    EXISTS (SELECT 1 FROM workspace_members AS wm WHERE wm.workspace_id = workspace_members.workspace_id AND wm.user_id = auth.uid())
+    workspace_id IN (SELECT public.get_user_workspaces())
 );
 
 -- Projects visibility
