@@ -73,7 +73,7 @@ export async function GET(
       );
     }
     const redirectUri = `${origin}/api/integrations/github/callback`;
-    const scopes = encodeURIComponent("repo,read:user,user:email,admin:repo_hook");
+    const scopes = encodeURIComponent("repo read:user user:email admin:repo_hook");
     const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${scopes}`;
     return NextResponse.redirect(authUrl);
   }
